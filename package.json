@@ -22,7 +22,10 @@
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
-    "electron": "^30.0.0",
+    "electron": "^30.5.1",
     "typescript": "^5.4.0"
+  },
+  "allowScripts": {
+    "electron@30.5.1": true
   }
 }
