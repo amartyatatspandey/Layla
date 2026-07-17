@@ -1,0 +1,10 @@
+{
+  "name": "rf_sensor",
+  "title": "BLE RF sensor board",
+  "description": "nRF52840 BLE SoC with a chip antenna, a buck regulator and a BME280 environmental sensor. The antenna needs a clear board-edge keepout away from the switching regulator.",
+  "board": {
+    "width": 46,
+    "height": 34,
+    "diffPairs": []
+  }
+}

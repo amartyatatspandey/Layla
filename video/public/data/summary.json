@@ -1,0 +1,1 @@
+{"boards":[{"name":"buck_imu","title":"buck + IMU","initial":453.21,"final":379.447878374547,"pct":16,"substrate":2},{"name":"motor_driver","title":"BLDC motor driver","initial":562.83,"final":413.9684586853371,"pct":26,"substrate":3},{"name":"rf_sensor","title":"BLE RF sensor","initial":268.99,"final":131.37532072418082,"pct":51,"substrate":3}]}

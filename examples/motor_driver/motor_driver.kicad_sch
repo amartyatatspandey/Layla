@@ -1,0 +1,1536 @@
+(kicad_sch
+  (version 20230121)
+  (generator layla)
+  (uuid "00000000-0000-0000-0000-00000000004c")
+  (paper "A4")
+  (title_block
+    (title "BLDC motor driver board")
+  )
+  (lib_symbols
+    (symbol "MCU"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "MCU_0_1"
+        (rectangle
+          (start -6.35 -7.62)
+          (end 6.35 7.62)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "MCU_1_1"
+        (pin passive line
+          (at -7.62 -5.08 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at -7.62 -2.54 0)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "3"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "3"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at -7.62 2.54 0)
+          (length 2.54)
+          (name "4"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "4"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at -7.62 5.08 0)
+          (length 2.54)
+          (name "5"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "5"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 -5.08 180)
+          (length 2.54)
+          (name "6"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "6"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 -2.54 180)
+          (length 2.54)
+          (name "7"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "7"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "8"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "8"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 2.54 180)
+          (length 2.54)
+          (name "9"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "9"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 5.08 180)
+          (length 2.54)
+          (name "10"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "10"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "MotorDriver"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "MotorDriver_0_1"
+        (rectangle
+          (start -6.35 -6.35)
+          (end 6.35 6.35)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "MotorDriver_1_1"
+        (pin passive line
+          (at -7.62 -3.81 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at -7.62 -1.27 0)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at -7.62 1.27 0)
+          (length 2.54)
+          (name "3"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "3"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at -7.62 3.81 0)
+          (length 2.54)
+          (name "4"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "4"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 -3.81 180)
+          (length 2.54)
+          (name "5"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "5"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 -1.27 180)
+          (length 2.54)
+          (name "6"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "6"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 1.27 180)
+          (length 2.54)
+          (name "7"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "7"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 3.81 180)
+          (length 2.54)
+          (name "8"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "8"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "Regulator"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "Regulator_0_1"
+        (rectangle
+          (start -6.35 -5.08)
+          (end 6.35 5.08)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "Regulator_1_1"
+        (pin passive line
+          (at -7.62 -2.54 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at -7.62 2.54 0)
+          (length 2.54)
+          (name "3"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "3"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 -2.54 180)
+          (length 2.54)
+          (name "4"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "4"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "5"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "5"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 2.54 180)
+          (length 2.54)
+          (name "6"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "6"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "L"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "L_0_1"
+        (rectangle
+          (start -6.35 -2.54)
+          (end 6.35 2.54)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "L_1_1"
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "C"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "C_0_1"
+        (rectangle
+          (start -6.35 -2.54)
+          (end 6.35 2.54)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "C_1_1"
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "Mosfet"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "Mosfet_0_1"
+        (rectangle
+          (start -6.35 -3.81)
+          (end 6.35 3.81)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "Mosfet_1_1"
+        (pin passive line
+          (at -7.62 -1.27 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at -7.62 1.27 0)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 -1.27 180)
+          (length 2.54)
+          (name "3"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "3"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "Conn"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "Conn_0_1"
+        (rectangle
+          (start -6.35 -2.54)
+          (end 6.35 2.54)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "Conn_1_1"
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "ADC"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "ADC_0_1"
+        (rectangle
+          (start -6.35 -5.08)
+          (end 6.35 5.08)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "ADC_1_1"
+        (pin passive line
+          (at -7.62 -2.54 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at -7.62 2.54 0)
+          (length 2.54)
+          (name "3"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "3"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 -2.54 180)
+          (length 2.54)
+          (name "4"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "4"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "5"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "5"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 2.54 180)
+          (length 2.54)
+          (name "6"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "6"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "USB"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "USB_0_1"
+        (rectangle
+          (start -6.35 -5.08)
+          (end 6.35 5.08)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "USB_1_1"
+        (pin passive line
+          (at -7.62 -2.54 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at -7.62 2.54 0)
+          (length 2.54)
+          (name "4"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "4"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 -2.54 180)
+          (length 2.54)
+          (name "5"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "5"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "9"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "9"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+  )
+  (symbol
+    (lib_id "MCU")
+    (at 30 30 0)
+    (unit 1)
+    (in_bom yes)
+    (on_board yes)
+    (uuid "00000000-0000-0000-0000-00000000004d")
+    (property "Reference" "U1"
+      (at 30 22 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Value" "STM32G0"
+      (at 30 38 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Footprint" "Package_QFP:LQFP-48"
+      (at 30 30 0)
+      (effects
+        (font (size 1.27 1.27) hide)
+      )
+    )
+  )
+  (label "3V3"
+    (at 22.38 24.92 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-00000000004e")
+  )
+  (label "GND"
+    (at 22.38 27.46 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-00000000004f")
+  )
+  (label "PWM_A"
+    (at 22.38 30 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-000000000050")
+  )
+  (label "PWM_B"
+    (at 22.38 32.54 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-000000000051")
+  )
+  (label "ISENSE"
+    (at 22.38 35.08 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-000000000052")
+  )
+  (label "IMU_SDA"
+    (at 37.62 24.92 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-000000000053")
+  )
+  (label "IMU_SCL"
+    (at 37.62 27.46 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-000000000054")
+  )
+  (label "USB_DP"
+    (at 37.62 30 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-000000000055")
+  )
+  (label "USB_DM"
+    (at 37.62 32.54 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-000000000056")
+  )
+  (label "GND"
+    (at 37.62 35.08 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-000000000057")
+  )
+  (symbol
+    (lib_id "MotorDriver")
+    (at 65 30 0)
+    (unit 1)
+    (in_bom yes)
+    (on_board yes)
+    (uuid "00000000-0000-0000-0000-000000000058")
+    (property "Reference" "U2"
+      (at 65 22 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Value" "DRV8313"
+      (at 65 38 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Footprint" "Package_QFP:HTSSOP-28"
+      (at 65 30 0)
+      (effects
+        (font (size 1.27 1.27) hide)
+      )
+    )
+  )
+  (label "VMOT"
+    (at 57.38 26.19 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-000000000059")
+  )
+  (label "GND"
+    (at 57.38 28.73 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-00000000005a")
+  )
+  (label "PWM_A"
+    (at 57.38 31.27 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-00000000005b")
+  )
+  (label "PWM_B"
+    (at 57.38 33.81 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-00000000005c")
+  )
+  (label "MOTOR_A"
+    (at 72.62 26.19 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-00000000005d")
+  )
+  (label "MOTOR_B"
+    (at 72.62 28.73 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-00000000005e")
+  )
+  (label "GATE"
+    (at 72.62 31.27 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-00000000005f")
+  )
+  (label "GND"
+    (at 72.62 33.81 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-000000000060")
+  )
+  (symbol
+    (lib_id "Regulator")
+    (at 100 30 0)
+    (unit 1)
+    (in_bom yes)
+    (on_board yes)
+    (uuid "00000000-0000-0000-0000-000000000061")
+    (property "Reference" "U3"
+      (at 100 22 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Value" "TPS54331"
+      (at 100 38 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Footprint" "Package_TO_SOT_SMD:SOT-23-6"
+      (at 100 30 0)
+      (effects
+        (font (size 1.27 1.27) hide)
+      )
+    )
+  )
+  (label "SW"
+    (at 92.38 27.46 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-000000000062")
+  )
+  (label "GND"
+    (at 92.38 30 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-000000000063")
+  )
+  (label "3V3"
+    (at 92.38 32.54 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-000000000064")
+  )
+  (label "EN"
+    (at 107.62 27.46 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-000000000065")
+  )
+  (label "VMOT"
+    (at 107.62 30 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-000000000066")
+  )
+  (label "GND"
+    (at 107.62 32.54 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-000000000067")
+  )
+  (symbol
+    (lib_id "L")
+    (at 135 30 0)
+    (unit 1)
+    (in_bom yes)
+    (on_board yes)
+    (uuid "00000000-0000-0000-0000-000000000068")
+    (property "Reference" "L1"
+      (at 135 22 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Value" "10uH"
+      (at 135 38 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Footprint" "Inductor_SMD:L_Power_5x5"
+      (at 135 30 0)
+      (effects
+        (font (size 1.27 1.27) hide)
+      )
+    )
+  )
+  (label "SW"
+    (at 127.38 30 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-000000000069")
+  )
+  (label "3V3"
+    (at 142.62 30 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-00000000006a")
+  )
+  (symbol
+    (lib_id "C")
+    (at 170 30 0)
+    (unit 1)
+    (in_bom yes)
+    (on_board yes)
+    (uuid "00000000-0000-0000-0000-00000000006b")
+    (property "Reference" "C1"
+      (at 170 22 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Value" "47uF"
+      (at 170 38 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Footprint" "Capacitor_SMD:C_1206"
+      (at 170 30 0)
+      (effects
+        (font (size 1.27 1.27) hide)
+      )
+    )
+  )
+  (label "VMOT"
+    (at 162.38 30 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-00000000006c")
+  )
+  (label "GND"
+    (at 177.62 30 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-00000000006d")
+  )
+  (symbol
+    (lib_id "C")
+    (at 205 30 0)
+    (unit 1)
+    (in_bom yes)
+    (on_board yes)
+    (uuid "00000000-0000-0000-0000-00000000006e")
+    (property "Reference" "C2"
+      (at 205 22 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Value" "22uF"
+      (at 205 38 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Footprint" "Capacitor_SMD:C_0805"
+      (at 205 30 0)
+      (effects
+        (font (size 1.27 1.27) hide)
+      )
+    )
+  )
+  (label "3V3"
+    (at 197.38 30 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-00000000006f")
+  )
+  (label "GND"
+    (at 212.62 30 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-000000000070")
+  )
+  (symbol
+    (lib_id "Mosfet")
+    (at 30 65 0)
+    (unit 1)
+    (in_bom yes)
+    (on_board yes)
+    (uuid "00000000-0000-0000-0000-000000000071")
+    (property "Reference" "Q1"
+      (at 30 57 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Value" "NMOS"
+      (at 30 73 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Footprint" "Package_TO_SOT_SMD:SOT-23"
+      (at 30 65 0)
+      (effects
+        (font (size 1.27 1.27) hide)
+      )
+    )
+  )
+  (label "GATE"
+    (at 22.38 63.73 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-000000000072")
+  )
+  (label "MOTOR_A"
+    (at 22.38 66.27 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-000000000073")
+  )
+  (label "GND"
+    (at 37.62 63.73 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-000000000074")
+  )
+  (symbol
+    (lib_id "Conn")
+    (at 65 65 0)
+    (unit 1)
+    (in_bom yes)
+    (on_board yes)
+    (uuid "00000000-0000-0000-0000-000000000075")
+    (property "Reference" "J1"
+      (at 65 57 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Value" "PWR"
+      (at 65 73 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Footprint" "Connector:ScrewTerminal_1x02_P5.0mm"
+      (at 65 65 0)
+      (effects
+        (font (size 1.27 1.27) hide)
+      )
+    )
+  )
+  (label "VMOT"
+    (at 57.38 65 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-000000000076")
+  )
+  (label "GND"
+    (at 72.62 65 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-000000000077")
+  )
+  (symbol
+    (lib_id "Conn")
+    (at 100 65 0)
+    (unit 1)
+    (in_bom yes)
+    (on_board yes)
+    (uuid "00000000-0000-0000-0000-000000000078")
+    (property "Reference" "J2"
+      (at 100 57 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Value" "MOTOR"
+      (at 100 73 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Footprint" "Connector:ScrewTerminal_1x03_P5.0mm"
+      (at 100 65 0)
+      (effects
+        (font (size 1.27 1.27) hide)
+      )
+    )
+  )
+  (label "MOTOR_A"
+    (at 92.38 63.73 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-000000000079")
+  )
+  (label "MOTOR_B"
+    (at 92.38 66.27 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-00000000007a")
+  )
+  (label "GND"
+    (at 107.62 63.73 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-00000000007b")
+  )
+  (symbol
+    (lib_id "ADC")
+    (at 135 65 0)
+    (unit 1)
+    (in_bom yes)
+    (on_board yes)
+    (uuid "00000000-0000-0000-0000-00000000007c")
+    (property "Reference" "U4"
+      (at 135 57 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Value" "INA240"
+      (at 135 73 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Footprint" "Package_TO_SOT_SMD:SOT-23-6"
+      (at 135 65 0)
+      (effects
+        (font (size 1.27 1.27) hide)
+      )
+    )
+  )
+  (label "ISENSE"
+    (at 127.38 62.46 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-00000000007d")
+  )
+  (label "GND"
+    (at 127.38 65 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-00000000007e")
+  )
+  (label "MOTOR_A"
+    (at 127.38 67.54 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-00000000007f")
+  )
+  (label "MOTOR_B"
+    (at 142.62 62.46 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-000000000080")
+  )
+  (label "3V3"
+    (at 142.62 65 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-000000000081")
+  )
+  (label "ISENSE"
+    (at 142.62 67.54 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-000000000082")
+  )
+  (symbol
+    (lib_id "C")
+    (at 170 65 0)
+    (unit 1)
+    (in_bom yes)
+    (on_board yes)
+    (uuid "00000000-0000-0000-0000-000000000083")
+    (property "Reference" "C3"
+      (at 170 57 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Value" "100nF"
+      (at 170 73 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Footprint" "Capacitor_SMD:C_0402"
+      (at 170 65 0)
+      (effects
+        (font (size 1.27 1.27) hide)
+      )
+    )
+  )
+  (label "3V3"
+    (at 162.38 65 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-000000000084")
+  )
+  (label "GND"
+    (at 177.62 65 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-000000000085")
+  )
+  (symbol
+    (lib_id "C")
+    (at 205 65 0)
+    (unit 1)
+    (in_bom yes)
+    (on_board yes)
+    (uuid "00000000-0000-0000-0000-000000000086")
+    (property "Reference" "C4"
+      (at 205 57 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Value" "100nF"
+      (at 205 73 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Footprint" "Capacitor_SMD:C_0402"
+      (at 205 65 0)
+      (effects
+        (font (size 1.27 1.27) hide)
+      )
+    )
+  )
+  (label "3V3"
+    (at 197.38 65 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-000000000087")
+  )
+  (label "GND"
+    (at 212.62 65 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-000000000088")
+  )
+  (symbol
+    (lib_id "USB")
+    (at 30 100 0)
+    (unit 1)
+    (in_bom yes)
+    (on_board yes)
+    (uuid "00000000-0000-0000-0000-000000000089")
+    (property "Reference" "J3"
+      (at 30 92 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Value" "USB_C"
+      (at 30 108 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Footprint" "Connector_USB:USB_C_Receptacle"
+      (at 30 100 0)
+      (effects
+        (font (size 1.27 1.27) hide)
+      )
+    )
+  )
+  (label "GND"
+    (at 22.38 97.46 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-00000000008a")
+  )
+  (label "VMOT"
+    (at 22.38 100 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-00000000008b")
+  )
+  (label "USB_DP"
+    (at 22.38 102.54 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-00000000008c")
+  )
+  (label "USB_DM"
+    (at 37.62 97.46 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-00000000008d")
+  )
+  (label "GND"
+    (at 37.62 100 0)
+    (effects
+      (font (size 1.27 1.27))
+      (justify left)
+    )
+    (uuid "00000000-0000-0000-0000-00000000008e")
+  )
+  (sheet_instances
+    (path "/" (page "1"))
+  )
+)

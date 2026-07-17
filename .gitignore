@@ -1,0 +1,10 @@
+node_modules/
+dist/
+out/
+build/
+*.log
+.DS_Store
+
+# scratch
+_*.js
+/tmp-*

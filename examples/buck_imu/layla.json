@@ -1,0 +1,16 @@
+{
+  "name": "buck_imu",
+  "title": "Buck + ESP32 + IMU sensor board",
+  "description": "ESP32-S3 with a TPS62160 buck regulator, USB-C, an ICM-42688 IMU and a 40MHz crystal. The buck switching node and the sensitive IMU/USB nets must be kept apart.",
+  "board": {
+    "width": 52,
+    "height": 40,
+    "diffPairs": [
+      {
+        "p": "USB_DP",
+        "n": "USB_DM",
+        "spacing": 0.18
+      }
+    ]
+  }
+}

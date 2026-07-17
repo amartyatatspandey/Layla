@@ -1,0 +1,31 @@
+{
+  "name": "mainboard",
+  "title": "Autonomy mainboard (SoC + 4× BLDC + radios + Ethernet)",
+  "description": "A ~200-part autonomy mainboard: AM62 SoC + RP2040 + ICE40 FPGA, dual LPDDR4 on a shared 16-bit bus, a six-rail switching power tree, FOUR 3-phase BLDC channels (24 FETs), an 8-chip sensor bus, two radios, Ethernet/CAN/RS485/USB, three crystals and ~70 decaps. Hundreds of fine SPI/I2C/DQ/PWM nets and high-current motor phases must coexist.",
+  "board": {
+    "width": 132,
+    "height": 100,
+    "diffPairs": [
+      {
+        "p": "USB_DP",
+        "n": "USB_DM",
+        "spacing": 0.18
+      },
+      {
+        "p": "ETH_TXP",
+        "n": "ETH_TXN",
+        "spacing": 0.2
+      },
+      {
+        "p": "ETH_RXP",
+        "n": "ETH_RXN",
+        "spacing": 0.2
+      },
+      {
+        "p": "CANH",
+        "n": "CANL",
+        "spacing": 0.2
+      }
+    ]
+  }
+}

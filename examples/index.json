@@ -1,0 +1,37 @@
+[
+  {
+    "name": "mainboard",
+    "title": "Autonomy mainboard (SoC + 4× BLDC + radios + Ethernet)",
+    "description": "A ~200-part autonomy mainboard: AM62 SoC + RP2040 + ICE40 FPGA, dual LPDDR4 on a shared 16-bit bus, a six-rail switching power tree, FOUR 3-phase BLDC channels (24 FETs), an 8-chip sensor bus, two radios, Ethernet/CAN/RS485/USB, three crystals and ~70 decaps. Hundreds of fine SPI/I2C/DQ/PWM nets and high-current motor phases must coexist.",
+    "schematic": "mainboard/mainboard.kicad_sch",
+    "config": "mainboard/layla.json"
+  },
+  {
+    "name": "robot_soc",
+    "title": "Robotics control SoC (BLDC + radio + sensors)",
+    "description": "STM32H7 driving a 3-phase BLDC power stage (DRV8353 + 6 FETs + shunts), an nRF52840 radio with matching network, a 3-buck power tree, USB-C, CAN, and a 4-chip sensor cluster. Dozens of fine SPI/I2C/PWM nets, three switching nodes, and high-current motor phases must coexist without coupling.",
+    "schematic": "robot_soc/robot_soc.kicad_sch",
+    "config": "robot_soc/layla.json"
+  },
+  {
+    "name": "buck_imu",
+    "title": "Buck + ESP32 + IMU sensor board",
+    "description": "ESP32-S3 with a TPS62160 buck regulator, USB-C, an ICM-42688 IMU and a 40MHz crystal. The buck switching node and the sensitive IMU/USB nets must be kept apart.",
+    "schematic": "buck_imu/buck_imu.kicad_sch",
+    "config": "buck_imu/layla.json"
+  },
+  {
+    "name": "motor_driver",
+    "title": "BLDC motor driver board",
+    "description": "STM32G0 + DRV8313 motor driver with a buck regulator and an INA240 current sensor. High-current motor nets and the buck must stay away from the sense/logic.",
+    "schematic": "motor_driver/motor_driver.kicad_sch",
+    "config": "motor_driver/layla.json"
+  },
+  {
+    "name": "rf_sensor",
+    "title": "BLE RF sensor board",
+    "description": "nRF52840 BLE SoC with a chip antenna, a buck regulator and a BME280 environmental sensor. The antenna needs a clear board-edge keepout away from the switching regulator.",
+    "schematic": "rf_sensor/rf_sensor.kicad_sch",
+    "config": "rf_sensor/layla.json"
+  }
+]

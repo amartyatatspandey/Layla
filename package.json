@@ -1,0 +1,28 @@
+{
+  "name": "layla",
+  "version": "0.1.0",
+  "description": "layla — a recursively self-improving AI for PCB design: schematic in, placed & routed board out — getting better on every iteration.",
+  "author": "Amartya Pandey",
+  "license": "MIT",
+  "main": "dist/electron/main.js",
+  "type": "commonjs",
+  "bin": {
+    "layla": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "gen-examples": "node dist/scripts/gen-examples.js",
+    "check-footprints": "node dist/scripts/check-footprint-pads.js",
+    "check-lvs": "node dist/scripts/check-lvs.js",
+    "check-drc": "node dist/scripts/check-drc.js",
+    "cli": "node dist/cli.js",
+    "start": "electron .",
+    "app": "npm run build && npm run gen-examples && electron .",
+    "demo": "npm run build && npm run gen-examples && node dist/cli.js demo"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "electron": "^30.0.0",
+    "typescript": "^5.4.0"
+  }
+}

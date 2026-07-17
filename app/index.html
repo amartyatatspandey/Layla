@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>layla</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- ================= TOP BAR ================= -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark"></span>
+      <div class="brand-text">
+        <h1>layla</h1>
+        <p class="tagline">a PCB layout AI that gets better every iteration</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button id="btn-save-board" class="btn btn-ghost">Save .kicad_pcb</button>
+      <button id="btn-save-rules" class="btn btn-ghost">Save rules</button>
+    </div>
+  </header>
+
+  <!-- ================= MAIN GRID ================= -->
+  <div class="app-grid">
+
+    <!-- -------- LEFT SIDEBAR -------- -->
+    <aside class="sidebar">
+      <section class="panel">
+        <div class="panel-head">Example boards</div>
+        <div id="examples" class="examples">
+          <div class="hint">Loading examples…</div>
+        </div>
+        <button id="btn-open-sch" class="btn btn-block btn-ghost">Load .kicad_sch…</button>
+        <div id="loaded-file" class="loaded-file" hidden></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">Controls</div>
+
+        <label class="field">
+          <span class="field-label">Optimizer</span>
+          <select id="optimizer" class="select">
+            <option value="oscillator" selected>Coupled-oscillator (Kuramoto)</option>
+            <option value="anneal">Simulated annealing</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span class="field-label">Iterations <em id="iter-readout">8</em></span>
+          <input id="iterations" type="range" min="1" max="16" value="8" step="1" />
+        </label>
+
+        <label class="field">
+          <span class="field-label">Feedback</span>
+          <input id="feedback" type="text"
+                 placeholder="keep the buck hot loop tight and away from the imu" />
+        </label>
+
+        <label class="check">
+          <input id="use-rules" type="checkbox" />
+          <span>reuse rules from last run (transfer)</span>
+        </label>
+
+        <label class="check">
+          <input id="emi" type="checkbox" checked />
+          <span>EMI validation pass</span>
+        </label>
+
+        <button id="btn-run" class="btn btn-primary btn-block">
+          <span class="btn-run-label">Run self-improvement</span>
+          <span class="btn-run-icon">▶</span>
+        </button>
+      </section>
+
+      <section class="panel" id="topology-panel" hidden>
+        <div class="panel-head">Detected topology</div>
+        <div id="clusters" class="clusters"></div>
+      </section>
+
+      <section class="panel" id="rules-panel" hidden>
+        <div class="panel-head">Learned rules</div>
+        <div id="rules" class="rules"></div>
+      </section>
+    </aside>
+
+    <!-- -------- CENTER COLUMN -------- -->
+    <main class="center">
+      <div class="tabs">
+        <button class="tab is-active" data-tab="board">Board</button>
+        <button class="tab" data-tab="heatmap">Risk heatmap</button>
+        <button class="tab" data-tab="curve">Learning curve</button>
+        <button class="tab" data-tab="oscillator">Oscillator</button>
+        <button class="tab" data-tab="emi">EMI field</button>
+        <div class="tabs-spacer"></div>
+        <div id="run-state" class="run-state">idle</div>
+      </div>
+
+      <div class="viewport">
+        <div id="view-board" class="svg-stage is-active">
+          <div class="svg-empty">Run the model to render the board.</div>
+        </div>
+        <div id="view-heatmap" class="svg-stage">
+          <div class="svg-empty">Risk heatmap will appear here.</div>
+        </div>
+        <div id="view-curve" class="svg-stage">
+          <div class="svg-empty">Learning curve will appear here.</div>
+        </div>
+        <div id="view-oscillator" class="svg-stage">
+          <div class="svg-empty">Coupled-oscillator field will appear here.</div>
+        </div>
+        <div id="view-emi" class="svg-stage">
+          <div class="svg-empty">EMI voxel field will appear here.</div>
+        </div>
+      </div>
+
+      <!-- live metrics strip -->
+      <div class="metrics">
+        <div class="metric metric-hero">
+          <div class="metric-label">best score <span id="m-substrate" class="substrate-chip" hidden></span></div>
+          <div id="m-best" class="metric-value">—</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">drc errors</div>
+          <div id="m-drc" class="metric-value sm">—</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">switch loop area</div>
+          <div id="m-loop" class="metric-value sm">—</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">route completion</div>
+          <div id="m-route" class="metric-value sm">—</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">coupling</div>
+          <div id="m-coupling" class="metric-value sm">—</div>
+        </div>
+        <div class="metric metric-progress">
+          <div class="metric-label">iteration <span id="m-progress-text">0 / 0</span></div>
+          <div class="progress"><div id="progress-bar" class="progress-bar"></div></div>
+        </div>
+      </div>
+
+      <div id="summary" class="summary" hidden></div>
+    </main>
+
+    <!-- -------- RIGHT COLUMN -------- -->
+    <aside class="rightbar">
+      <section class="panel grow">
+        <div class="panel-head">Hotspots</div>
+        <div id="hotspots" class="hotspots">
+          <div class="hint">No analysis yet. Run the model to surface field-risk hotspots.</div>
+        </div>
+      </section>
+
+      <section class="panel" id="emi-panel" hidden>
+        <div class="panel-head">EMI validation</div>
+        <div id="emi-body" class="emi-body"></div>
+      </section>
+
+      <section class="panel grow">
+        <div class="panel-head">Iteration log</div>
+        <div id="log" class="log"></div>
+      </section>
+    </aside>
+  </div>
+
+  <!-- toast -->
+  <div id="toast" class="toast" hidden></div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

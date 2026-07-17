@@ -1,0 +1,21 @@
+{
+  "name": "robot_soc",
+  "title": "Robotics control SoC (BLDC + radio + sensors)",
+  "description": "STM32H7 driving a 3-phase BLDC power stage (DRV8353 + 6 FETs + shunts), an nRF52840 radio with matching network, a 3-buck power tree, USB-C, CAN, and a 4-chip sensor cluster. Dozens of fine SPI/I2C/PWM nets, three switching nodes, and high-current motor phases must coexist without coupling.",
+  "board": {
+    "width": 96,
+    "height": 70,
+    "diffPairs": [
+      {
+        "p": "USB_DP",
+        "n": "USB_DM",
+        "spacing": 0.18
+      },
+      {
+        "p": "CANH",
+        "n": "CANL",
+        "spacing": 0.2
+      }
+    ]
+  }
+}

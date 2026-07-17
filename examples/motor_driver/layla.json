@@ -1,0 +1,16 @@
+{
+  "name": "motor_driver",
+  "title": "BLDC motor driver board",
+  "description": "STM32G0 + DRV8313 motor driver with a buck regulator and an INA240 current sensor. High-current motor nets and the buck must stay away from the sense/logic.",
+  "board": {
+    "width": 64,
+    "height": 46,
+    "diffPairs": [
+      {
+        "p": "USB_DP",
+        "n": "USB_DM",
+        "spacing": 0.18
+      }
+    ]
+  }
+}
