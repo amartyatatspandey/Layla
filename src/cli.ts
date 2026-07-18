@@ -132,11 +132,11 @@ function writeOutputs(outDir: string, name: string, design: Design, res: Improve
   if (!lvs.clean) {
     console.log(C.red(`  LVS: connectivity mismatch — missing=${lvs.missing.length} extra=${lvs.extra.length} netMismatch=${lvs.netMismatch.length} (see ${name}.report.json.lvs)`));
   }
-  // Copper clearance DRC: minimum-spacing check between different-net pads/
-  // segments/vias (see src/core/drc.ts). Additive alongside the existing
-  // courtyard/offboard proxy already in `score.drcErrors` /
-  // `score.courtyardOverlaps` — does not replace or feed back into those,
-  // and (same as LVS) is assistive only: does not affect CLI exit code.
+  // Copper clearance DRC: exact minimum-spacing check between different-net
+  // pads/segments/vias (see src/core/drc.ts). Final report path — same
+  // checkClearance used by the in-loop promotion gate. Score.drcErrors also
+  // includes a cheaper broad-phase AABB count (plus courtyard/offboard).
+  // Assistive for CLI exit code: does not fail the process on violations.
   const drc = checkClearance(design, res.best.layout);
   if (!drc.clean) {
     console.log(C.red(`  DRC: ${drc.violations.length} clearance violation(s) below ${drc.requiredClearanceMm}mm (see ${name}.report.json.drc)`));

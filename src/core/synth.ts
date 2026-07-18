@@ -15,6 +15,7 @@ import {
 import { defaultSubstrate, mutateSubstrate } from "./osc";
 import { validateEmiProgressive } from "./emi";
 import { OscViz, OscSubstrate, EmiReport } from "./oscTypes";
+import { checkClearance, DrcClearanceReport } from "./drc";
 import {
   BoardSpec, Design, ImproveResult, IterationRecord, Layout, Ruleset, Score,
 } from "./types";
@@ -120,14 +121,22 @@ export interface ImproveOpts {
   /** Test seam: override EMI validator used by the gate list. */
   emiValidator?: (design: Design, layout: Layout) => EmiReport;
 }
-export interface BestState { layout: Layout; score: Score; viz?: OscViz; emi?: EmiReport; }
+export interface BestState {
+  layout: Layout;
+  score: Score;
+  viz?: OscViz;
+  emi?: EmiReport;
+  /** Exact clearance report for this best — never stored on CandidateLayout. */
+  bestDrc?: DrcClearanceReport;
+}
 
 /**
  * Recursively self-improving loop.
  *
  * Candidate *generation* may still be backend-specific (substrate mutation vs
  * symbolic rule synthesis). Candidate *evaluation* is not: every CandidateLayout
- * passes through the same gate list (score always; EMI when --emi is on).
+ * passes through the same gate list (score always; exact DRC non-regression
+ * always; EMI when --emi is on).
  */
 export function improve(design: Design, opts: ImproveOpts = {}): ImproveResult {
   const iterations = opts.iterations ?? 8;
@@ -174,6 +183,8 @@ export function improve(design: Design, opts: ImproveOpts = {}): ImproveResult {
     if (!best || trial.score.total < best.score.total) {
       best = { ...trial };
       if (emiOn) best.emi = emiValidator(design, best.layout);
+      // Exact DRC for BestState only — CandidateLayout stays { layout }.
+      best.bestDrc = checkClearance(design, best.layout);
     }
 
     // (b)/(c) Generate promotion patches against a shared snapshot (parallel
@@ -228,6 +239,7 @@ export function improve(design: Design, opts: ImproveOpts = {}): ImproveResult {
         layout: test.layout,
         score: test.score,
         bestScore: best.score.total,
+        bestDrc: best.bestDrc,
         bestEmi: best.emi,
         emiOn,
         emiValidator,
@@ -240,6 +252,7 @@ export function improve(design: Design, opts: ImproveOpts = {}): ImproveResult {
         score: test.score,
         viz: test.viz,
         emi: emiOn ? (gate.emi ?? emiValidator(design, test.layout)) : best.emi,
+        bestDrc: gate.drc ?? checkClearance(design, test.layout),
       };
       promoted.push(pc.patch.label);
     }

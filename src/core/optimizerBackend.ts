@@ -2,12 +2,14 @@
 //
 // Placement backends (anneal / oscillator) only produce CandidateLayout.
 // Every candidate — regardless of how it was proposed — is judged by the
-// same ordered gate list (canonical score always; EMI when --emi is on).
+// same ordered gate list (canonical score always; exact DRC non-regression
+// always; EMI when --emi is on). Gates stay backend/provenance agnostic.
 
 import { anneal, seedPlacement } from "./place";
 import { oscillatorPlace } from "./osc";
 import { routeCritical } from "./route";
 import { scoreLayout, DEFAULT_WEIGHTS } from "./score";
+import { checkClearance, DrcClearanceReport } from "./drc";
 import { RNG } from "./rng";
 import { OscViz, EmiReport } from "./oscTypes";
 import { Design, Layout, Ruleset, Score } from "./types";
@@ -154,17 +156,27 @@ export interface GateContext {
   layout: Layout;
   score: Score;
   bestScore: number;
+  /** Exact clearance report for the current best (from checkClearance). */
+  bestDrc?: DrcClearanceReport;
+  /** Optional cached exact report for this candidate (avoids a second run). */
+  candidateDrc?: DrcClearanceReport;
   bestEmi?: EmiReport;
   emiOn: boolean;
   emiValidator: (design: Design, layout: Layout) => EmiReport;
+}
+
+export interface GateCheckResult {
+  ok: boolean;
+  emi?: EmiReport;
+  drc?: DrcClearanceReport;
 }
 
 export interface PromotionGate {
   name: string;
   /** Whether this gate is active for the current run. */
   active: (ctx: GateContext) => boolean;
-  /** Returns ok + optional EMI report produced while checking. */
-  check: (ctx: GateContext) => { ok: boolean; emi?: EmiReport };
+  /** Returns ok + optional reports produced while checking. */
+  check: (ctx: GateContext) => GateCheckResult;
 }
 
 export function emiRisk(e?: EmiReport): number {
@@ -176,6 +188,39 @@ export const SCORE_IMPROVEMENT_GATE: PromotionGate = {
   name: "canonical_score",
   active: () => true,
   check: (ctx) => ({ ok: ctx.score.total < ctx.bestScore - 1e-6 }),
+};
+
+/**
+ * Always active: exact copper-clearance non-regression.
+ * Rejects ONLY when candidate exact violations.length exceeds the current
+ * best's exact count. Equal or better exact DRC may promote (if score also
+ * better). Uses checkClearance (narrow-phase), not the broad score signal.
+ */
+export const DRC_CLEARANCE_NON_REGRESSION_GATE: PromotionGate = {
+  name: "drc_clearance_non_regression",
+  active: () => true,
+  check: (ctx) => {
+    let drc: DrcClearanceReport;
+    try {
+      drc = ctx.candidateDrc ?? checkClearance(ctx.design, ctx.layout);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      throw new Error(`exact clearance DRC failed during promotion gate: ${msg}`);
+    }
+    if (
+      typeof drc.clean !== "boolean" ||
+      !Array.isArray(drc.violations) ||
+      !Number.isFinite(drc.requiredClearanceMm)
+    ) {
+      throw new Error("exact clearance DRC failed to produce a usable report");
+    }
+    // First best is established outside the gate list (explore path sets
+    // bestDrc). For promotion: missing bestDrc → treat prior count as 0
+    // (strict); equal or fewer violations may promote.
+    const bestCount = ctx.bestDrc?.violations.length ?? 0;
+    const ok = drc.violations.length <= bestCount;
+    return { ok, drc };
+  },
 };
 
 /**
@@ -192,9 +237,10 @@ export const EMI_NON_REGRESSION_GATE: PromotionGate = {
   },
 };
 
-/** Ordered gate list — append future gates (e.g. in-loop DRC) here only. */
+/** Ordered gate list — score → exact DRC → conditional EMI. */
 export const DEFAULT_PROMOTION_GATES: PromotionGate[] = [
   SCORE_IMPROVEMENT_GATE,
+  DRC_CLEARANCE_NON_REGRESSION_GATE,
   EMI_NON_REGRESSION_GATE,
 ];
 
@@ -202,22 +248,25 @@ export interface GateResult {
   ok: boolean;
   failedGate?: string;
   emi?: EmiReport;
+  drc?: DrcClearanceReport;
 }
 
 /**
- * Run every active gate in order. First failure rejects; EMI report from a
- * passing EMI gate is returned for the caller to attach to best state.
+ * Run every active gate in order. First failure rejects; exact DRC / EMI
+ * reports from passing gates are returned for the caller to attach to best.
  */
 export function evaluatePromotionGates(
   ctx: GateContext,
   gates: PromotionGate[] = DEFAULT_PROMOTION_GATES,
 ): GateResult {
   let emi: EmiReport | undefined;
+  let drc: DrcClearanceReport | undefined;
   for (const gate of gates) {
     if (!gate.active(ctx)) continue;
     const r = gate.check(ctx);
     if (r.emi) emi = r.emi;
-    if (!r.ok) return { ok: false, failedGate: gate.name, emi };
+    if (r.drc) drc = r.drc;
+    if (!r.ok) return { ok: false, failedGate: gate.name, emi, drc };
   }
-  return { ok: true, emi };
+  return { ok: true, emi, drc };
 }

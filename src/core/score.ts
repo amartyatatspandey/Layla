@@ -8,6 +8,7 @@ import {
   courtyardWorld, mstEdges, netPads, padWorld,
 } from "./layoututil";
 import { Component, Design, FieldScores, Hotspot, Layout, Net, Score } from "./types";
+import { checkClearanceBroad } from "./drc";
 
 export const DEFAULT_WEIGHTS: Record<string, number> = {
   ratsnest: 1.0,
@@ -22,7 +23,7 @@ export const DEFAULT_WEIGHTS: Record<string, number> = {
   highCurrent: 5.0,
   thermal: 3.0,
   returnPath: 4.0,
-  drc: 20.0,
+  drc: 20.0, // locked — do not change without an explicit roadmap decision
 };
 
 function compByRef(design: Design): Map<string, Component> {
@@ -229,8 +230,15 @@ export function scoreLayout(design: Design, layout: Layout, weights = DEFAULT_WE
     }
   }
 
-  // ---- DRC proxy ----
-  const drcErrors = Math.round(courtyardOverlaps > 0.1 ? courtyardOverlaps * 2 : 0) + (offboard > 0.1 ? Math.ceil(offboard) : 0);
+  // ---- DRC: courtyard/offboard proxy + broad-phase copper clearance ----
+  // Broad count is pad-AABB / coarse primitive AABB pairs within clearance
+  // (checkClearanceBroad) — not exact narrow-phase. Exact clearance is the
+  // promotion gate + report.json path (checkClearance), not this term.
+  const broad = checkClearanceBroad(design, layout);
+  const proxyErrors =
+    Math.round(courtyardOverlaps > 0.1 ? courtyardOverlaps * 2 : 0) +
+    (offboard > 0.1 ? Math.ceil(offboard) : 0);
+  const drcErrors = proxyErrors + broad.violationCount;
   const drcWarnings = Math.round(crossings / 4);
 
   const terms: Record<string, number> = {

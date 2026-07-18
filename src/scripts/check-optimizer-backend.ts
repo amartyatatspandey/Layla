@@ -4,7 +4,8 @@ import * as path from "path";
 import {
   compileDesign, improve, createBackend, materializeCandidate,
   evaluatePromotionGates, DEFAULT_PROMOTION_GATES, SCORE_IMPROVEMENT_GATE,
-  EMI_NON_REGRESSION_GATE, emiRisk, defaultRuleset, defaultSubstrate, RNG,
+  DRC_CLEARANCE_NON_REGRESSION_GATE, EMI_NON_REGRESSION_GATE, emiRisk,
+  defaultRuleset, defaultSubstrate, RNG,
   CandidateLayout, Design, Layout, Score, EmiReport,
 } from "../core";
 
@@ -102,11 +103,14 @@ function sharedDispatchPath(): void {
   );
   assert(/evaluatePromotionGates/.test(improveBody), "evaluatePromotionGates called in improve");
 
-  // Gate list is named and extensible
+  // Gate list is named and extensible: score → exact DRC → conditional EMI
   assert(DEFAULT_PROMOTION_GATES[0] === SCORE_IMPROVEMENT_GATE, "score gate first");
-  assert(DEFAULT_PROMOTION_GATES[1] === EMI_NON_REGRESSION_GATE, "EMI gate second");
+  assert(DEFAULT_PROMOTION_GATES[1] === DRC_CLEARANCE_NON_REGRESSION_GATE, "DRC gate second");
+  assert(DEFAULT_PROMOTION_GATES[2] === EMI_NON_REGRESSION_GATE, "EMI gate third");
   assert(SCORE_IMPROVEMENT_GATE.name === "canonical_score", "score gate named");
+  assert(DRC_CLEARANCE_NON_REGRESSION_GATE.name === "drc_clearance_non_regression", "DRC gate named");
   assert(EMI_NON_REGRESSION_GATE.name === "emi_non_regression", "EMI gate named");
+  assert(DEFAULT_PROMOTION_GATES.length === 3, "exactly three default promotion gates");
 }
 
 function annealFeedbackNoEmi(): void {

@@ -1,6 +1,19 @@
 // Copper clearance DRC — verifies minimum spacing between different-net
 // copper (pads, routed trace segments, vias).
 //
+// Two tiers (intentional distinction — do not conflate):
+//
+//   Broad (`checkClearanceBroad`) — pad-AABB / coarse primitive bounding-box
+//   overlap candidates. Uses the same gatherPrimitives + spatial buckets as
+//   exact, but counts pairs whose *axis-aligned bounding boxes* are closer
+//   than clearance. Cheap signal for scoreLayout()'s `drcErrors` (alongside
+//   courtyard/offboard). Over-counts vs exact for capsules/circles because
+//   AABB is a conservative enclosure — that is by design for in-loop scoring.
+//
+//   Exact (`checkClearance`) — full narrow-phase geometry (pad AABB, via
+//   circles, trace capsules via gapBetween). Used as the named promotion
+//   gate `drc_clearance_non_regression` and for final report.json `drc`.
+//
 // LAYLA_AUDIT.md finding B: scoreLayout()'s `drcErrors` was only
 // courtyardOverlaps + offboard (component-BODY-level proxies) — nothing
 // checked actual copper-to-copper spacing. Separately, route.ts's A*
@@ -68,8 +81,8 @@ export interface DrcViolation {
 
 // Stable, documented shape for report.json's `drc` field (same pattern as
 // `lvs` — see src/core/lvs.ts). Additive alongside the existing
-// courtyard/offboard proxy already reported in `score.drcErrors` /
-// `score.courtyardOverlaps`; this does not replace or feed back into those.
+// courtyard/offboard contribution in `score.drcErrors`; broad-phase copper
+// counts also feed that field (see checkClearanceBroad / InLoopDrcSummary).
 //   clean             — true iff violations is empty
 //   requiredClearanceMm — the board.clearance value violations were checked against
 //   violations        — every different-net copper pair closer than required
@@ -77,6 +90,22 @@ export interface DrcClearanceReport {
   clean: boolean;
   requiredClearanceMm: number;
   violations: DrcViolation[];
+}
+
+/**
+ * Broad-phase in-loop summary: deterministic candidate-safe counts only.
+ * `violationCount` is the number of different-net primitive pairs whose
+ * coarse AABBs are within clearance (not narrow-phase geometry).
+ */
+export interface DrcBroadReport {
+  requiredClearanceMm: number;
+  violationCount: number;
+}
+
+/** Candidate-safe summary used when folding broad DRC into score.drcErrors. */
+export interface InLoopDrcSummary {
+  broadViolationCount: number;
+  requiredClearanceMm: number;
 }
 
 type Prim =
@@ -88,6 +117,23 @@ function primAt(p: Prim): Pt {
   if (p.kind === "pad") return { x: (p.box.minX + p.box.maxX) / 2, y: (p.box.minY + p.box.maxY) / 2 };
   if (p.kind === "via") return p.center;
   return { x: (p.a.x + p.b.x) / 2, y: (p.a.y + p.b.y) / 2 };
+}
+
+/** Axis-aligned enclosure of a copper primitive (shared by broad + exact). */
+function primAabb(p: Prim): Box {
+  if (p.kind === "pad") return p.box;
+  if (p.kind === "via") {
+    return {
+      minX: p.center.x - p.radius, minY: p.center.y - p.radius,
+      maxX: p.center.x + p.radius, maxY: p.center.y + p.radius,
+    };
+  }
+  return {
+    minX: Math.min(p.a.x, p.b.x) - p.halfWidth,
+    minY: Math.min(p.a.y, p.b.y) - p.halfWidth,
+    maxX: Math.max(p.a.x, p.b.x) + p.halfWidth,
+    maxY: Math.max(p.a.y, p.b.y) + p.halfWidth,
+  };
 }
 
 // World-space AABB of a single pad, honoring footprint rotation (0/90/180/270
@@ -147,6 +193,61 @@ function gatherPrimitives(design: Design, layout: Layout): Prim[] {
   return out;
 }
 
+interface SpatialIndex {
+  buckets: Map<string, number[]>;
+  primBuckets: [number, number][][];
+}
+
+function bucketKey(bx: number, by: number): string {
+  return `${bx},${by}`;
+}
+
+/**
+ * Shared spatial bucket construction for broad and exact clearance checks.
+ * Keeping one builder prevents broad/exact drift on which pairs are considered.
+ */
+function buildSpatialBuckets(prims: Prim[], required: number): SpatialIndex {
+  // Bucket size generous relative to `required` plus the largest plausible
+  // primitive extent, so any pair close enough to violate clearance is
+  // guaranteed to share a bucket (or be in an immediately adjacent one).
+  const BUCKET = Math.max(4, required * 4);
+  const buckets = new Map<string, number[]>();
+  const bucketsOf = (p: Prim): [number, number][] => {
+    const box = primAabb(p);
+    const bx0 = Math.floor(box.minX / BUCKET), bx1 = Math.floor(box.maxX / BUCKET);
+    const by0 = Math.floor(box.minY / BUCKET), by1 = Math.floor(box.maxY / BUCKET);
+    const out: [number, number][] = [];
+    for (let by = by0; by <= by1; by++) for (let bx = bx0; bx <= bx1; bx++) out.push([bx, by]);
+    return out;
+  };
+  const primBuckets: [number, number][][] = prims.map((p) => bucketsOf(p));
+  prims.forEach((_, i) => {
+    for (const [bx, by] of primBuckets[i]) {
+      const key = bucketKey(bx, by);
+      let arr = buckets.get(key);
+      if (!arr) { arr = []; buckets.set(key, arr); }
+      arr.push(i);
+    }
+  });
+  return { buckets, primBuckets };
+}
+
+/** Neighbor indices j > i that share a bucket neighborhood with primitive i. */
+function neighborIndices(
+  i: number,
+  primBuckets: [number, number][][],
+  buckets: Map<string, number[]>,
+): Set<number> {
+  const neighborIdx = new Set<number>();
+  for (const [bx, by] of primBuckets[i]) {
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+      const arr = buckets.get(bucketKey(bx + dx, by + dy));
+      if (arr) for (const j of arr) if (j > i) neighborIdx.add(j);
+    }
+  }
+  return neighborIdx;
+}
+
 // Distance from a line segment to an axis-aligned box (0 if they touch/cross/overlap).
 function segBoxDist(a: Pt, b: Pt, box: Box): number {
   if (pointInBox(a, box) || pointInBox(b, box)) return 0;
@@ -202,49 +303,74 @@ function gapBetween(x: Prim, y: Prim): number {
 // masking an actual clearance problem.
 const GEOMETRY_EPSILON_MM = 1e-6;
 
+function assertExactReport(report: DrcClearanceReport): DrcClearanceReport {
+  if (
+    !report ||
+    typeof report.clean !== "boolean" ||
+    typeof report.requiredClearanceMm !== "number" ||
+    !Number.isFinite(report.requiredClearanceMm) ||
+    !Array.isArray(report.violations)
+  ) {
+    throw new Error("exact clearance DRC failed to produce a usable report");
+  }
+  return report;
+}
+
+/**
+ * Broad-phase clearance count for in-loop scoring.
+ *
+ * Same gatherPrimitives + spatial buckets as checkClearance, but counts
+ * different-net pairs whose coarse AABBs are within clearance — NOT full
+ * gapBetween / capsule-circle narrow-phase. See module header for the
+ * intentional broad-vs-exact distinction.
+ */
+export function checkClearanceBroad(design: Design, layout: Layout): DrcBroadReport {
+  const required = design.board.clearance;
+  if (!Number.isFinite(required)) {
+    throw new Error("board.clearance is not a finite number; cannot run broad DRC");
+  }
+  const prims = gatherPrimitives(design, layout);
+  const { buckets, primBuckets } = buildSpatialBuckets(prims, required);
+
+  let violationCount = 0;
+  const seenPairs = new Set<string>();
+  for (let i = 0; i < prims.length; i++) {
+    for (const j of neighborIndices(i, primBuckets, buckets)) {
+      const x = prims[i], y = prims[j];
+      if (x.net === y.net && x.net !== "") continue;
+      const pairKey = `${i},${j}`;
+      if (seenPairs.has(pairKey)) continue;
+      seenPairs.add(pairKey);
+      // Coarse: AABB gap only (pad box / via box / segment AABB enclosure).
+      const gap = boxGap(primAabb(x), primAabb(y));
+      if (gap < required - GEOMETRY_EPSILON_MM) violationCount++;
+    }
+  }
+
+  return { requiredClearanceMm: required, violationCount };
+}
+
+/** Fold broad report into the candidate-safe in-loop summary shape. */
+export function inLoopDrcSummary(design: Design, layout: Layout): InLoopDrcSummary {
+  const broad = checkClearanceBroad(design, layout);
+  return {
+    broadViolationCount: broad.violationCount,
+    requiredClearanceMm: broad.requiredClearanceMm,
+  };
+}
+
 export function checkClearance(design: Design, layout: Layout): DrcClearanceReport {
   const required = design.board.clearance;
+  if (!Number.isFinite(required)) {
+    throw new Error("board.clearance is not a finite number; cannot run exact DRC");
+  }
   const prims = gatherPrimitives(design, layout);
-
-  // Spatial bucket broad-phase: bucket size generous relative to `required`
-  // plus the largest plausible primitive extent, so any pair close enough
-  // to violate clearance is guaranteed to share a bucket (or be in an
-  // immediately adjacent one).
-  const BUCKET = Math.max(4, required * 4);
-  const bucketKey = (bx: number, by: number) => `${bx},${by}`;
-  const buckets = new Map<string, number[]>();
-  const bucketsOf = (p: Prim): [number, number][] => {
-    let box: Box;
-    if (p.kind === "pad") box = p.box;
-    else if (p.kind === "via") box = { minX: p.center.x - p.radius, minY: p.center.y - p.radius, maxX: p.center.x + p.radius, maxY: p.center.y + p.radius };
-    else box = { minX: Math.min(p.a.x, p.b.x) - p.halfWidth, minY: Math.min(p.a.y, p.b.y) - p.halfWidth, maxX: Math.max(p.a.x, p.b.x) + p.halfWidth, maxY: Math.max(p.a.y, p.b.y) + p.halfWidth };
-    const bx0 = Math.floor(box.minX / BUCKET), bx1 = Math.floor(box.maxX / BUCKET);
-    const by0 = Math.floor(box.minY / BUCKET), by1 = Math.floor(box.maxY / BUCKET);
-    const out: [number, number][] = [];
-    for (let by = by0; by <= by1; by++) for (let bx = bx0; bx <= bx1; bx++) out.push([bx, by]);
-    return out;
-  };
-  const primBuckets: [number, number][][] = prims.map((p) => bucketsOf(p));
-  prims.forEach((_, i) => {
-    for (const [bx, by] of primBuckets[i]) {
-      const key = bucketKey(bx, by);
-      let arr = buckets.get(key);
-      if (!arr) { arr = []; buckets.set(key, arr); }
-      arr.push(i);
-    }
-  });
+  const { buckets, primBuckets } = buildSpatialBuckets(prims, required);
 
   const violations: DrcViolation[] = [];
   const seenPairs = new Set<string>();
   for (let i = 0; i < prims.length; i++) {
-    const neighborIdx = new Set<number>();
-    for (const [bx, by] of primBuckets[i]) {
-      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
-        const arr = buckets.get(bucketKey(bx + dx, by + dy));
-        if (arr) for (const j of arr) if (j > i) neighborIdx.add(j);
-      }
-    }
-    for (const j of neighborIdx) {
+    for (const j of neighborIndices(i, primBuckets, buckets)) {
       const x = prims[i], y = prims[j];
       if (x.net === y.net && x.net !== "") continue; // same real net: not a short
       const pairKey = `${i},${j}`;
@@ -264,5 +390,9 @@ export function checkClearance(design: Design, layout: Layout): DrcClearanceRepo
     }
   }
 
-  return { clean: violations.length === 0, requiredClearanceMm: required, violations };
+  return assertExactReport({
+    clean: violations.length === 0,
+    requiredClearanceMm: required,
+    violations,
+  });
 }

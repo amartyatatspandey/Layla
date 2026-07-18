@@ -130,10 +130,11 @@ The pipeline runs in this order, all in TypeScript, all offline:
    **oscillator**, mutates the `OscSubstrate` (symbolic `--feedback` is notice-only).
 10. **Promotion-gated ratchet** (`core/synth.ts`, `core/optimizerBackend.ts`) —
     re-optimizes with each candidate through one `OptimizerBackend` dispatch,
-    then runs every `CandidateLayout` through the **same gate list** (canonical
-    score always; EMI non-regression when `--emi` is on). Learning channels
-    still differ by optimizer (symbolic rules vs substrate mutation), but
-    **evaluation does not** branch on candidate provenance.
+    then runs every `CandidateLayout` through the **same gate list**
+    (`canonical_score` → exact `drc_clearance_non_regression` → EMI when
+    `--emi` is on). Learning channels still differ by optimizer (symbolic
+    rules vs substrate mutation), but **evaluation does not** branch on
+    candidate provenance.
 11. **Board emission + integrity checks** (`core/board.ts`, `core/lvs.ts`,
     `core/drc.ts`) — writes the final `.kicad_pcb`, then independently
     re-derives connectivity from *that emitted text* and diffs it against the
@@ -181,14 +182,16 @@ The objective is a weighted sum of geometric and field-risk terms (lower = bette
 | `highCurrent` | Length × current of high-current paths |
 | `thermal` | Heat-source (regulator/driver/MOSFET) density |
 | `returnPath` | Sensitive nets routed across noisy clusters |
-| `drc` | Proxy DRC errors (courtyard overlap + off-board) — component-body-level, feeds the optimizer's own objective |
+| `drc` | Courtyard/off-board proxy **plus** broad-phase copper clearance pair count (`checkClearanceBroad`) — feeds the optimizer objective (`DEFAULT_WEIGHTS.drc` = 20) |
 
-This `drc` term is a fast in-loop *proxy* the optimizer scores every candidate
-against — it's not the same thing as `report.json`'s separate `drc` field
-(actual copper clearance, checked once at the end; see
-[Verification](#verification-lvs--clearance-drc)). The report also exposes
-normalized **field scores** (`coupling`, `returnPath`, `switching`, `antenna`,
-`thermal`) in `[0,1]`.
+This `drc` term is the **in-loop** legality signal: courtyard/off-board plus a
+cheap **broad-phase** copper count (pad AABB / coarse primitive bounding-box
+pairs within clearance). It is intentionally coarser than exact narrow-phase
+geometry. Exact clearance (`checkClearance`) is a separate always-on promotion
+gate (`drc_clearance_non_regression`) and still lands in `report.json`'s `drc`
+field at emit time — see [Verification](#verification-lvs--clearance-drc).
+The report also exposes normalized **field scores** (`coupling`, `returnPath`,
+`switching`, `antenna`, `thermal`) in `[0,1]`.
 
 ---
 
@@ -230,8 +233,10 @@ for a real field solver or compliance testing. When `--emi` is on, the validator
 acts as a **promotion gate on every candidate** (rule-derived or
 substrate-derived): a layout that lowers the canonical score but regresses field
 risk (beyond a small tolerance: `emiRisk(cand) ≤ emiRisk(best) × 1.08`) is
-rejected. The gate list lives in `optimizerBackend.ts` so future checks can be
-appended without touching backend or dispatch code.
+rejected. The ordered gate list in `optimizerBackend.ts` is:
+`canonical_score` → `drc_clearance_non_regression` (exact copper clearance,
+always on) → `emi_non_regression` (when `--emi` is on). Future checks append
+here without touching backend or dispatch code.
 
 ---
 
@@ -252,14 +257,15 @@ check for either class of bug recurring in the future:
   with no matching board pad), `extra` (a board pad on a real net the
   schematic never declared), and `netMismatch` (same pin, different net) —
   each as structured data, not just a printed message.
-- **Copper clearance DRC** (`core/drc.ts`, `checkClearance`) — checks every
-  pad/trace-segment/via pair belonging to *different* nets against
-  `board.clearance` (default 0.2mm). Pads are modeled as rotation-aware
-  bounding boxes (not circles — fine-pitch footprints legitimately pack
-  pads close together, and a circumscribing circle would false-positive on
-  that intentional spacing); traces as capsules; vias as circles. Scoped to
-  preventing shorts specifically — annular-ring and trace-width-vs-current
-  checks aren't implemented.
+- **Copper clearance DRC** (`core/drc.ts`) — two tiers:
+  - **Broad** (`checkClearanceBroad`): pad-AABB / coarse primitive bounding-box
+    pairs within `board.clearance` — feeds `score.drcErrors` in-loop.
+  - **Exact** (`checkClearance`): full narrow-phase geometry (pads as
+    rotation-aware boxes, traces as capsules, vias as circles). Used as the
+    always-on promotion gate `drc_clearance_non_regression` (reject only if
+    exact violation count exceeds the current best) and written to
+    `report.json.drc` at emit. Scoped to preventing shorts — annular-ring and
+    trace-width-vs-current checks aren't implemented.
 
 Both run automatically at the end of every `synth`/`demo`/`batch` invocation
 and land in `<name>.report.json` as `lvs` and `drc` objects (`clean: boolean`
@@ -273,8 +279,9 @@ npm run check-footprints   # every bundled component's footprint pads match its 
 npm run check-lvs          # all 5 bundled boards are lvs.clean, + a manufactured-regression negative case
 npm run check-drc          # zero shared grid cells (router hard-block) + zero clearance violations,
                             # including every *fixed* footprint template checked in isolation
+npm run check-inloop-drc   # broad-phase score signal + exact DRC promotion non-regression fixtures
 npm run check-rules-scope  # weights removed; anneal feedback vs oscillator notice
-npm run check-optimizer-backend  # OptimizerBackend + uniform EMI gate for all candidates
+npm run check-optimizer-backend  # OptimizerBackend + uniform gates (score → DRC → EMI)
 ```
 
 These are gate tests, not unit tests in a framework — each is a standalone
@@ -502,10 +509,10 @@ measured question on this codebase, not a settled claim.
 | `score.ts` | Canonical objective + field-risk proxy + hotspot detection. |
 | `rules.ts` | Symbolic rule synthesis from hotspots/`--feedback` (anneal constraints); no weight deltas. |
 | `synth.ts` | Orchestrator: `designFromSchematic`, `synthOnce` via `OptimizerBackend`, and the `improve` ratchet (uniform gate-list evaluation). |
-| `optimizerBackend.ts` | `OptimizerBackend` / `CandidateLayout`, anneal+oscillator adapters, ordered promotion gates (score + optional EMI). |
+| `optimizerBackend.ts` | `OptimizerBackend` / `CandidateLayout`, anneal+oscillator adapters, ordered promotion gates (score → exact DRC → optional EMI). |
 | `board.ts` | Emit `.kicad_pcb`. |
 | `lvs.ts` | **LVS-equivalent connectivity check** (`verifyLvs`) — re-parses the emitted board and diffs it against the schematic. |
-| `drc.ts` | **Copper clearance DRC** (`checkClearance`) — minimum-spacing check between different-net pads/traces/vias. |
+| `drc.ts` | **Two-tier copper clearance DRC** — broad (`checkClearanceBroad` → score) + exact (`checkClearance` → promotion gate + report). |
 | `svg.ts` | Board / heatmap / learning-curve / oscillator / EMI-field renderers. |
 | `schemgen.ts` | Author valid `.kicad_sch` (used to build the examples). |
 | `rng.ts` | Seeded deterministic RNG. |
@@ -518,8 +525,9 @@ measured question on this codebase, not a settled claim.
 - **`app/`** — the renderer UI (`index.html`, `renderer.js`, `styles.css`) with the
   clickable example boards.
 - **`src/scripts/gen-examples.ts`** — generates the bundled schematics into `examples/`.
-- **`src/scripts/check-footprint-pads.ts`**, **`check-lvs.ts`**, **`check-drc.ts`** — the
-  gate tests behind `npm run check-footprints` / `check-lvs` / `check-drc` (see
+- **`src/scripts/check-footprint-pads.ts`**, **`check-lvs.ts`**, **`check-drc.ts`**,
+  **`check-inloop-drc.ts`** — the gate tests behind `npm run check-footprints` /
+  `check-lvs` / `check-drc` / `check-inloop-drc` (see
   [Verification](#verification-lvs--clearance-drc)).
 - **`examples/`** — the five example boards + `index.json`.
 - **`docs/`** — design docs, including [`oscillator-architecture.md`](docs/oscillator-architecture.md)

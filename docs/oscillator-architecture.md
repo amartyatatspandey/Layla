@@ -130,12 +130,16 @@ GPU-friendly vector of scalars. The RSI loop:
 3. **Promotes** the mutation only if it passes the **shared gate list**
    applied to every `CandidateLayout` (not just substrate mutations):
    - the **canonical score improves** (same yardstick the optimizer targets), **and**
+   - **exact copper clearance does not regress** (`drc_clearance_non_regression`,
+     always on — reject only if exact `violations.length` exceeds the current
+     best; broad-phase AABB counts feed `score.drcErrors` separately), **and**
    - the **EMI field check does not regress** (independent validator, §6), when
      EMI validation is enabled (`--emi` / `emiValidate`).
 
-A mutation that lowers score but regresses field risk is rejected. This is what
-makes the ratchet a ratchet: the substrate only moves in directions that improve
-the canonical objective without making the field worse.
+A mutation that lowers score but regresses exact clearance or field risk is
+rejected. This is what makes the ratchet a ratchet: the substrate only moves in
+directions that improve the canonical objective without making legality or the
+field worse.
 
 > **Transfer is verified separately, not inside the gate.** The promotion gate
 > above runs on the *current* board only. Generality is demonstrated by the
@@ -148,8 +152,9 @@ the canonical objective without making the field worse.
 > is the **anneal** optimizer's constraint channel; substrate mutation is the
 > **oscillator** learning channel. Those proposal mechanisms stay separate, but
 > every resulting `CandidateLayout` enters the **same** ordered gate list in
-> `optimizerBackend.ts` (score always; EMI when `--emi` is on). There is no
-> carve-out that exempts rule candidates from EMI non-regression.
+> `optimizerBackend.ts` (`canonical_score` → `drc_clearance_non_regression` →
+> conditional `emi_non_regression`). There is no carve-out that exempts rule
+> candidates from EMI non-regression or from exact DRC non-regression.
 ## 6. Separation of concerns: propose vs. validate
 
 Two independent subsystems, deliberately not conflated:

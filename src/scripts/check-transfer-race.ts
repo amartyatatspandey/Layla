@@ -178,9 +178,11 @@ function seed42SelectsCold(): void {
   console.log(`  cold=${tr.coldScore?.toFixed(1)} warm=${tr.warmScore?.toFixed(1)} winner=${tr.winner}`);
   assert(tr.winner === "cold", `winner is cold (got ${tr.winner})`);
   assert(tr.coldScore! < tr.warmScore!, "cold score < warm score");
-  // Match the investigated basin: cold ~624, warm ~837 (allow modest float slack).
-  assert(tr.coldScore! < 700, `cold in the v5 basin (<700; got ${tr.coldScore!.toFixed(1)})`);
-  assert(tr.warmScore! > 750, `warm stuck higher (>750; got ${tr.warmScore!.toFixed(1)})`);
+  // Historical pre-inloop-DRC basins were ~624 vs ~837. Absolute totals rose
+  // once broad copper clearance entered score.drcErrors (weight 20 unchanged);
+  // the race invariant is ordering + a clear cold advantage, not those numbers.
+  const gap = tr.warmScore! - tr.coldScore!;
+  assert(gap > 200, `cold advantage still clear (warm−cold=${gap.toFixed(1)})`);
   assert(Math.abs(res.best.score.total - tr.coldScore!) < 1e-6, "result keeps cold lineage wholesale");
 }
 
