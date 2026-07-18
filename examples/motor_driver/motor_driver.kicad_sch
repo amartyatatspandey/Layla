@@ -7,12 +7,12 @@
     (title "BLDC motor driver board")
   )
   (lib_symbols
-    (symbol "MCU"
+    (symbol "MCU_U1"
       (pin_numbers hide)
       (pin_names (offset 0.254))
       (in_bom yes)
       (on_board yes)
-      (symbol "MCU_0_1"
+      (symbol "MCU_U1_0_1"
         (rectangle
           (start -6.35 -7.62)
           (end 6.35 7.62)
@@ -20,7 +20,7 @@
           (fill (type background))
         )
       )
-      (symbol "MCU_1_1"
+      (symbol "MCU_U1_1_1"
         (pin passive line
           (at -7.62 -5.08 0)
           (length 2.54)
@@ -163,12 +163,12 @@
         )
       )
     )
-    (symbol "MotorDriver"
+    (symbol "MotorDriver_U2"
       (pin_numbers hide)
       (pin_names (offset 0.254))
       (in_bom yes)
       (on_board yes)
-      (symbol "MotorDriver_0_1"
+      (symbol "MotorDriver_U2_0_1"
         (rectangle
           (start -6.35 -6.35)
           (end 6.35 6.35)
@@ -176,7 +176,7 @@
           (fill (type background))
         )
       )
-      (symbol "MotorDriver_1_1"
+      (symbol "MotorDriver_U2_1_1"
         (pin passive line
           (at -7.62 -3.81 0)
           (length 2.54)
@@ -291,12 +291,12 @@
         )
       )
     )
-    (symbol "Regulator"
+    (symbol "Regulator_U3"
       (pin_numbers hide)
       (pin_names (offset 0.254))
       (in_bom yes)
       (on_board yes)
-      (symbol "Regulator_0_1"
+      (symbol "Regulator_U3_0_1"
         (rectangle
           (start -6.35 -5.08)
           (end 6.35 5.08)
@@ -304,7 +304,7 @@
           (fill (type background))
         )
       )
-      (symbol "Regulator_1_1"
+      (symbol "Regulator_U3_1_1"
         (pin passive line
           (at -7.62 -2.54 0)
           (length 2.54)
@@ -391,12 +391,12 @@
         )
       )
     )
-    (symbol "L"
+    (symbol "L_L1"
       (pin_numbers hide)
       (pin_names (offset 0.254))
       (in_bom yes)
       (on_board yes)
-      (symbol "L_0_1"
+      (symbol "L_L1_0_1"
         (rectangle
           (start -6.35 -2.54)
           (end 6.35 2.54)
@@ -404,7 +404,7 @@
           (fill (type background))
         )
       )
-      (symbol "L_1_1"
+      (symbol "L_L1_1_1"
         (pin passive line
           (at -7.62 0 0)
           (length 2.54)
@@ -435,12 +435,12 @@
         )
       )
     )
-    (symbol "C"
+    (symbol "C_C1"
       (pin_numbers hide)
       (pin_names (offset 0.254))
       (in_bom yes)
       (on_board yes)
-      (symbol "C_0_1"
+      (symbol "C_C1_0_1"
         (rectangle
           (start -6.35 -2.54)
           (end 6.35 2.54)
@@ -448,7 +448,7 @@
           (fill (type background))
         )
       )
-      (symbol "C_1_1"
+      (symbol "C_C1_1_1"
         (pin passive line
           (at -7.62 0 0)
           (length 2.54)
@@ -479,12 +479,56 @@
         )
       )
     )
-    (symbol "Mosfet"
+    (symbol "C_C2"
       (pin_numbers hide)
       (pin_names (offset 0.254))
       (in_bom yes)
       (on_board yes)
-      (symbol "Mosfet_0_1"
+      (symbol "C_C2_0_1"
+        (rectangle
+          (start -6.35 -2.54)
+          (end 6.35 2.54)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "C_C2_1_1"
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "Mosfet_Q1"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "Mosfet_Q1_0_1"
         (rectangle
           (start -6.35 -3.81)
           (end 6.35 3.81)
@@ -492,7 +536,7 @@
           (fill (type background))
         )
       )
-      (symbol "Mosfet_1_1"
+      (symbol "Mosfet_Q1_1_1"
         (pin passive line
           (at -7.62 -1.27 0)
           (length 2.54)
@@ -537,12 +581,12 @@
         )
       )
     )
-    (symbol "Conn"
+    (symbol "Conn_J1"
       (pin_numbers hide)
       (pin_names (offset 0.254))
       (in_bom yes)
       (on_board yes)
-      (symbol "Conn_0_1"
+      (symbol "Conn_J1_0_1"
         (rectangle
           (start -6.35 -2.54)
           (end 6.35 2.54)
@@ -550,7 +594,7 @@
           (fill (type background))
         )
       )
-      (symbol "Conn_1_1"
+      (symbol "Conn_J1_1_1"
         (pin passive line
           (at -7.62 0 0)
           (length 2.54)
@@ -581,12 +625,70 @@
         )
       )
     )
-    (symbol "ADC"
+    (symbol "Conn_J2"
       (pin_numbers hide)
       (pin_names (offset 0.254))
       (in_bom yes)
       (on_board yes)
-      (symbol "ADC_0_1"
+      (symbol "Conn_J2_0_1"
+        (rectangle
+          (start -6.35 -3.81)
+          (end 6.35 3.81)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "Conn_J2_1_1"
+        (pin passive line
+          (at -7.62 -1.27 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at -7.62 1.27 0)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 -1.27 180)
+          (length 2.54)
+          (name "3"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "3"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "ADC_U4"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "ADC_U4_0_1"
         (rectangle
           (start -6.35 -5.08)
           (end 6.35 5.08)
@@ -594,7 +696,7 @@
           (fill (type background))
         )
       )
-      (symbol "ADC_1_1"
+      (symbol "ADC_U4_1_1"
         (pin passive line
           (at -7.62 -2.54 0)
           (length 2.54)
@@ -681,12 +783,100 @@
         )
       )
     )
-    (symbol "USB"
+    (symbol "C_C3"
       (pin_numbers hide)
       (pin_names (offset 0.254))
       (in_bom yes)
       (on_board yes)
-      (symbol "USB_0_1"
+      (symbol "C_C3_0_1"
+        (rectangle
+          (start -6.35 -2.54)
+          (end 6.35 2.54)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "C_C3_1_1"
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "C_C4"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "C_C4_0_1"
+        (rectangle
+          (start -6.35 -2.54)
+          (end 6.35 2.54)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "C_C4_1_1"
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "USB_J3"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "USB_J3_0_1"
         (rectangle
           (start -6.35 -5.08)
           (end 6.35 5.08)
@@ -694,7 +884,7 @@
           (fill (type background))
         )
       )
-      (symbol "USB_1_1"
+      (symbol "USB_J3_1_1"
         (pin passive line
           (at -7.62 -2.54 0)
           (length 2.54)
@@ -769,7 +959,7 @@
     )
   )
   (symbol
-    (lib_id "MCU")
+    (lib_id "MCU_U1")
     (at 30 30 0)
     (unit 1)
     (in_bom yes)
@@ -875,7 +1065,7 @@
     (uuid "00000000-0000-0000-0000-000000000057")
   )
   (symbol
-    (lib_id "MotorDriver")
+    (lib_id "MotorDriver_U2")
     (at 65 30 0)
     (unit 1)
     (in_bom yes)
@@ -965,7 +1155,7 @@
     (uuid "00000000-0000-0000-0000-000000000060")
   )
   (symbol
-    (lib_id "Regulator")
+    (lib_id "Regulator_U3")
     (at 100 30 0)
     (unit 1)
     (in_bom yes)
@@ -1039,7 +1229,7 @@
     (uuid "00000000-0000-0000-0000-000000000067")
   )
   (symbol
-    (lib_id "L")
+    (lib_id "L_L1")
     (at 135 30 0)
     (unit 1)
     (in_bom yes)
@@ -1081,7 +1271,7 @@
     (uuid "00000000-0000-0000-0000-00000000006a")
   )
   (symbol
-    (lib_id "C")
+    (lib_id "C_C1")
     (at 170 30 0)
     (unit 1)
     (in_bom yes)
@@ -1123,7 +1313,7 @@
     (uuid "00000000-0000-0000-0000-00000000006d")
   )
   (symbol
-    (lib_id "C")
+    (lib_id "C_C2")
     (at 205 30 0)
     (unit 1)
     (in_bom yes)
@@ -1165,7 +1355,7 @@
     (uuid "00000000-0000-0000-0000-000000000070")
   )
   (symbol
-    (lib_id "Mosfet")
+    (lib_id "Mosfet_Q1")
     (at 30 65 0)
     (unit 1)
     (in_bom yes)
@@ -1215,7 +1405,7 @@
     (uuid "00000000-0000-0000-0000-000000000074")
   )
   (symbol
-    (lib_id "Conn")
+    (lib_id "Conn_J1")
     (at 65 65 0)
     (unit 1)
     (in_bom yes)
@@ -1257,7 +1447,7 @@
     (uuid "00000000-0000-0000-0000-000000000077")
   )
   (symbol
-    (lib_id "Conn")
+    (lib_id "Conn_J2")
     (at 100 65 0)
     (unit 1)
     (in_bom yes)
@@ -1307,7 +1497,7 @@
     (uuid "00000000-0000-0000-0000-00000000007b")
   )
   (symbol
-    (lib_id "ADC")
+    (lib_id "ADC_U4")
     (at 135 65 0)
     (unit 1)
     (in_bom yes)
@@ -1381,7 +1571,7 @@
     (uuid "00000000-0000-0000-0000-000000000082")
   )
   (symbol
-    (lib_id "C")
+    (lib_id "C_C3")
     (at 170 65 0)
     (unit 1)
     (in_bom yes)
@@ -1423,7 +1613,7 @@
     (uuid "00000000-0000-0000-0000-000000000085")
   )
   (symbol
-    (lib_id "C")
+    (lib_id "C_C4")
     (at 205 65 0)
     (unit 1)
     (in_bom yes)
@@ -1465,7 +1655,7 @@
     (uuid "00000000-0000-0000-0000-000000000088")
   )
   (symbol
-    (lib_id "USB")
+    (lib_id "USB_J3")
     (at 30 100 0)
     (unit 1)
     (in_bom yes)

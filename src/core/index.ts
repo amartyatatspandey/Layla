@@ -2,6 +2,7 @@ export * from "./sexpr";
 export * from "./geometry";
 export * from "./rng";
 export * from "./footprints";
+export * from "./footprintReport";
 export * from "./types";
 export * from "./layoututil";
 export * from "./schematic";

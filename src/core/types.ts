@@ -1,6 +1,7 @@
 // Central intermediate representation (IR) shared across the whole pipeline.
 import { Box, Pt } from "./geometry";
-import { FootprintGeom } from "./footprints";
+import { FootprintAssumption, FootprintGeom } from "./footprints";
+export type { FootprintAssumption };
 
 // ---------- roles & net classes ----------
 export type Role =
@@ -73,6 +74,8 @@ export interface Design {
   clusters: Cluster[];
   board: BoardSpec;
   footprints: Record<string, FootprintGeom>; // keyed by ref
+  /** Always present; empty array when no parametric assumptions were made. */
+  footprintAssumptions: FootprintAssumption[];
 }
 
 // ---------- layout (placement + routing) ----------

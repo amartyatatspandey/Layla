@@ -7,12 +7,12 @@
     (title "BLE RF sensor board")
   )
   (lib_symbols
-    (symbol "MCU"
+    (symbol "MCU_U1"
       (pin_numbers hide)
       (pin_names (offset 0.254))
       (in_bom yes)
       (on_board yes)
-      (symbol "MCU_0_1"
+      (symbol "MCU_U1_0_1"
         (rectangle
           (start -6.35 -7.62)
           (end 6.35 7.62)
@@ -20,7 +20,7 @@
           (fill (type background))
         )
       )
-      (symbol "MCU_1_1"
+      (symbol "MCU_U1_1_1"
         (pin passive line
           (at -7.62 -5.08 0)
           (length 2.54)
@@ -163,12 +163,12 @@
         )
       )
     )
-    (symbol "Antenna"
+    (symbol "Antenna_ANT1"
       (pin_numbers hide)
       (pin_names (offset 0.254))
       (in_bom yes)
       (on_board yes)
-      (symbol "Antenna_0_1"
+      (symbol "Antenna_ANT1_0_1"
         (rectangle
           (start -6.35 -2.54)
           (end 6.35 2.54)
@@ -176,7 +176,7 @@
           (fill (type background))
         )
       )
-      (symbol "Antenna_1_1"
+      (symbol "Antenna_ANT1_1_1"
         (pin passive line
           (at -7.62 0 0)
           (length 2.54)
@@ -193,12 +193,12 @@
         )
       )
     )
-    (symbol "Regulator"
+    (symbol "Regulator_U2"
       (pin_numbers hide)
       (pin_names (offset 0.254))
       (in_bom yes)
       (on_board yes)
-      (symbol "Regulator_0_1"
+      (symbol "Regulator_U2_0_1"
         (rectangle
           (start -6.35 -5.08)
           (end 6.35 5.08)
@@ -206,7 +206,7 @@
           (fill (type background))
         )
       )
-      (symbol "Regulator_1_1"
+      (symbol "Regulator_U2_1_1"
         (pin passive line
           (at -7.62 -2.54 0)
           (length 2.54)
@@ -293,12 +293,12 @@
         )
       )
     )
-    (symbol "L"
+    (symbol "L_L1"
       (pin_numbers hide)
       (pin_names (offset 0.254))
       (in_bom yes)
       (on_board yes)
-      (symbol "L_0_1"
+      (symbol "L_L1_0_1"
         (rectangle
           (start -6.35 -2.54)
           (end 6.35 2.54)
@@ -306,7 +306,7 @@
           (fill (type background))
         )
       )
-      (symbol "L_1_1"
+      (symbol "L_L1_1_1"
         (pin passive line
           (at -7.62 0 0)
           (length 2.54)
@@ -337,12 +337,12 @@
         )
       )
     )
-    (symbol "C"
+    (symbol "C_C1"
       (pin_numbers hide)
       (pin_names (offset 0.254))
       (in_bom yes)
       (on_board yes)
-      (symbol "C_0_1"
+      (symbol "C_C1_0_1"
         (rectangle
           (start -6.35 -2.54)
           (end 6.35 2.54)
@@ -350,7 +350,7 @@
           (fill (type background))
         )
       )
-      (symbol "C_1_1"
+      (symbol "C_C1_1_1"
         (pin passive line
           (at -7.62 0 0)
           (length 2.54)
@@ -381,12 +381,56 @@
         )
       )
     )
-    (symbol "Sensor"
+    (symbol "C_C2"
       (pin_numbers hide)
       (pin_names (offset 0.254))
       (in_bom yes)
       (on_board yes)
-      (symbol "Sensor_0_1"
+      (symbol "C_C2_0_1"
+        (rectangle
+          (start -6.35 -2.54)
+          (end 6.35 2.54)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "C_C2_1_1"
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "Sensor_U3"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "Sensor_U3_0_1"
         (rectangle
           (start -6.35 -3.81)
           (end 6.35 3.81)
@@ -394,7 +438,7 @@
           (fill (type background))
         )
       )
-      (symbol "Sensor_1_1"
+      (symbol "Sensor_U3_1_1"
         (pin passive line
           (at -7.62 -1.27 0)
           (length 2.54)
@@ -453,12 +497,100 @@
         )
       )
     )
-    (symbol "Crystal"
+    (symbol "C_C3"
       (pin_numbers hide)
       (pin_names (offset 0.254))
       (in_bom yes)
       (on_board yes)
-      (symbol "Crystal_0_1"
+      (symbol "C_C3_0_1"
+        (rectangle
+          (start -6.35 -2.54)
+          (end 6.35 2.54)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "C_C3_1_1"
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "C_C4"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "C_C4_0_1"
+        (rectangle
+          (start -6.35 -2.54)
+          (end 6.35 2.54)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "C_C4_1_1"
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "Crystal_Y1"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "Crystal_Y1_0_1"
         (rectangle
           (start -6.35 -3.81)
           (end 6.35 3.81)
@@ -466,7 +598,7 @@
           (fill (type background))
         )
       )
-      (symbol "Crystal_1_1"
+      (symbol "Crystal_Y1_1_1"
         (pin passive line
           (at -7.62 -1.27 0)
           (length 2.54)
@@ -525,12 +657,12 @@
         )
       )
     )
-    (symbol "Conn"
+    (symbol "Conn_J1"
       (pin_numbers hide)
       (pin_names (offset 0.254))
       (in_bom yes)
       (on_board yes)
-      (symbol "Conn_0_1"
+      (symbol "Conn_J1_0_1"
         (rectangle
           (start -6.35 -2.54)
           (end 6.35 2.54)
@@ -538,7 +670,7 @@
           (fill (type background))
         )
       )
-      (symbol "Conn_1_1"
+      (symbol "Conn_J1_1_1"
         (pin passive line
           (at -7.62 0 0)
           (length 2.54)
@@ -569,12 +701,12 @@
         )
       )
     )
-    (symbol "R"
+    (symbol "R_R1"
       (pin_numbers hide)
       (pin_names (offset 0.254))
       (in_bom yes)
       (on_board yes)
-      (symbol "R_0_1"
+      (symbol "R_R1_0_1"
         (rectangle
           (start -6.35 -2.54)
           (end 6.35 2.54)
@@ -582,7 +714,51 @@
           (fill (type background))
         )
       )
-      (symbol "R_1_1"
+      (symbol "R_R1_1_1"
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "R_R2"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "R_R2_0_1"
+        (rectangle
+          (start -6.35 -2.54)
+          (end 6.35 2.54)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "R_R2_1_1"
         (pin passive line
           (at -7.62 0 0)
           (length 2.54)
@@ -615,7 +791,7 @@
     )
   )
   (symbol
-    (lib_id "MCU")
+    (lib_id "MCU_U1")
     (at 30 30 0)
     (unit 1)
     (in_bom yes)
@@ -721,7 +897,7 @@
     (uuid "00000000-0000-0000-0000-00000000009a")
   )
   (symbol
-    (lib_id "Antenna")
+    (lib_id "Antenna_ANT1")
     (at 65 30 0)
     (unit 1)
     (in_bom yes)
@@ -755,7 +931,7 @@
     (uuid "00000000-0000-0000-0000-00000000009c")
   )
   (symbol
-    (lib_id "Regulator")
+    (lib_id "Regulator_U2")
     (at 100 30 0)
     (unit 1)
     (in_bom yes)
@@ -829,7 +1005,7 @@
     (uuid "00000000-0000-0000-0000-0000000000a3")
   )
   (symbol
-    (lib_id "L")
+    (lib_id "L_L1")
     (at 135 30 0)
     (unit 1)
     (in_bom yes)
@@ -871,7 +1047,7 @@
     (uuid "00000000-0000-0000-0000-0000000000a6")
   )
   (symbol
-    (lib_id "C")
+    (lib_id "C_C1")
     (at 170 30 0)
     (unit 1)
     (in_bom yes)
@@ -913,7 +1089,7 @@
     (uuid "00000000-0000-0000-0000-0000000000a9")
   )
   (symbol
-    (lib_id "C")
+    (lib_id "C_C2")
     (at 205 30 0)
     (unit 1)
     (in_bom yes)
@@ -955,7 +1131,7 @@
     (uuid "00000000-0000-0000-0000-0000000000ac")
   )
   (symbol
-    (lib_id "Sensor")
+    (lib_id "Sensor_U3")
     (at 30 65 0)
     (unit 1)
     (in_bom yes)
@@ -1013,7 +1189,7 @@
     (uuid "00000000-0000-0000-0000-0000000000b1")
   )
   (symbol
-    (lib_id "C")
+    (lib_id "C_C3")
     (at 65 65 0)
     (unit 1)
     (in_bom yes)
@@ -1055,7 +1231,7 @@
     (uuid "00000000-0000-0000-0000-0000000000b4")
   )
   (symbol
-    (lib_id "C")
+    (lib_id "C_C4")
     (at 100 65 0)
     (unit 1)
     (in_bom yes)
@@ -1097,7 +1273,7 @@
     (uuid "00000000-0000-0000-0000-0000000000b7")
   )
   (symbol
-    (lib_id "Crystal")
+    (lib_id "Crystal_Y1")
     (at 135 65 0)
     (unit 1)
     (in_bom yes)
@@ -1155,7 +1331,7 @@
     (uuid "00000000-0000-0000-0000-0000000000bc")
   )
   (symbol
-    (lib_id "Conn")
+    (lib_id "Conn_J1")
     (at 170 65 0)
     (unit 1)
     (in_bom yes)
@@ -1197,7 +1373,7 @@
     (uuid "00000000-0000-0000-0000-0000000000bf")
   )
   (symbol
-    (lib_id "R")
+    (lib_id "R_R1")
     (at 205 65 0)
     (unit 1)
     (in_bom yes)
@@ -1239,7 +1415,7 @@
     (uuid "00000000-0000-0000-0000-0000000000c2")
   )
   (symbol
-    (lib_id "R")
+    (lib_id "R_R2")
     (at 30 100 0)
     (unit 1)
     (in_bom yes)

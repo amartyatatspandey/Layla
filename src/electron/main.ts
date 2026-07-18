@@ -3,14 +3,16 @@ import { app, BrowserWindow, ipcMain, dialog } from "electron";
 import * as fs from "fs";
 import * as path from "path";
 import {
-  designFromSchematic, improve, scoreLayout, DEFAULT_WEIGHTS,
+  improve, scoreLayout, DEFAULT_WEIGHTS,
   writeBoard, renderBoardSVG, renderHeatmapSVG, renderLearningCurveSVG,
   renderOscillatorSVG, renderEmiFieldSVG, validateEmiProgressive,
+  compileDesign, isUnresolvedFootprintError,
   Design, Layout, Ruleset, IterationRecord, Score, Optimizer,
 } from "../core";
 
 const APP_ROOT = path.join(__dirname, "..", "..");
 const EX_DIR = path.join(APP_ROOT, "examples");
+const BUILD_DIR = path.join(APP_ROOT, "build");
 
 // remember last run per-window so we can save the board
 let lastRun: { design: Design; layout: Layout; score: Score; ruleset: Ruleset; name: string } | null = null;
@@ -79,9 +81,10 @@ function designForExample(name: string): Design {
   if (!ex) throw new Error("unknown example: " + name);
   const schPath = path.join(EX_DIR, ex.schematic);
   const cfg = JSON.parse(fs.readFileSync(path.join(EX_DIR, ex.config), "utf8"));
-  return designFromSchematic(fs.readFileSync(schPath, "utf8"), {
+  const { design } = compileDesign(fs.readFileSync(schPath, "utf8"), {
     name, width: cfg.board.width, height: cfg.board.height, diffPairs: cfg.board.diffPairs || [],
-  });
+  }, BUILD_DIR);
+  return design;
 }
 
 ipcMain.handle("examples:list", async () => loadExamples());
@@ -97,11 +100,29 @@ ipcMain.handle("synth:run", async (evt, opts: { example?: string; schPath?: stri
   const sender = evt.sender;
   let design: Design;
   let name: string;
-  if (opts.example) { design = designForExample(opts.example); name = opts.example; }
-  else if (opts.schPath) {
-    name = path.basename(opts.schPath).replace(/\.kicad_sch$/, "");
-    design = designFromSchematic(fs.readFileSync(opts.schPath, "utf8"), { name });
-  } else throw new Error("no input");
+  try {
+    if (opts.example) { design = designForExample(opts.example); name = opts.example; }
+    else if (opts.schPath) {
+      name = path.basename(opts.schPath).replace(/\.kicad_sch$/, "");
+      const { design: d } = compileDesign(fs.readFileSync(opts.schPath, "utf8"), { name }, BUILD_DIR);
+      design = d;
+    } else throw new Error("no input");
+  } catch (e: any) {
+    if (isUnresolvedFootprintError(e)) {
+      return {
+        error: "unresolved_footprint",
+        message: e.message,
+        reportPath: e.reportPath || path.join(BUILD_DIR, `${opts.example || "board"}.footprint-report.json`),
+        entries: e.entries,
+      };
+    }
+    const nm = opts.example || (opts.schPath ? path.basename(opts.schPath).replace(/\.kicad_sch$/, "") : "board");
+    return {
+      error: "compile_failed",
+      message: e?.message || String(e),
+      reportPath: path.join(BUILD_DIR, `${nm}.footprint-report.json`),
+    };
+  }
 
   // optionally reuse last run's learned rules (transfer)
   const ruleset: Ruleset | undefined = (opts.useRules && lastRun) ? lastRun.ruleset : undefined;

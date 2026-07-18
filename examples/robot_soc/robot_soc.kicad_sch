@@ -7,12 +7,12 @@
     (title "Robotics control SoC (BLDC + radio + sensors)")
   )
   (lib_symbols
-    (symbol "MCU"
+    (symbol "MCU_U1"
       (pin_numbers hide)
       (pin_names (offset 0.254))
       (in_bom yes)
       (on_board yes)
-      (symbol "MCU_0_1"
+      (symbol "MCU_U1_0_1"
         (rectangle
           (start -6.35 -33.02)
           (end 6.35 33.02)
@@ -20,7 +20,7 @@
           (fill (type background))
         )
       )
-      (symbol "MCU_1_1"
+      (symbol "MCU_U1_1_1"
         (pin passive line
           (at -7.62 -30.48 0)
           (length 2.54)
@@ -723,12 +723,12 @@
         )
       )
     )
-    (symbol "C"
+    (symbol "C_C101"
       (pin_numbers hide)
       (pin_names (offset 0.254))
       (in_bom yes)
       (on_board yes)
-      (symbol "C_0_1"
+      (symbol "C_C101_0_1"
         (rectangle
           (start -6.35 -2.54)
           (end 6.35 2.54)
@@ -736,7 +736,7 @@
           (fill (type background))
         )
       )
-      (symbol "C_1_1"
+      (symbol "C_C101_1_1"
         (pin passive line
           (at -7.62 0 0)
           (length 2.54)
@@ -767,12 +767,364 @@
         )
       )
     )
-    (symbol "Regulator"
+    (symbol "C_C102"
       (pin_numbers hide)
       (pin_names (offset 0.254))
       (in_bom yes)
       (on_board yes)
-      (symbol "Regulator_0_1"
+      (symbol "C_C102_0_1"
+        (rectangle
+          (start -6.35 -2.54)
+          (end 6.35 2.54)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "C_C102_1_1"
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "C_C103"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "C_C103_0_1"
+        (rectangle
+          (start -6.35 -2.54)
+          (end 6.35 2.54)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "C_C103_1_1"
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "C_C104"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "C_C104_0_1"
+        (rectangle
+          (start -6.35 -2.54)
+          (end 6.35 2.54)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "C_C104_1_1"
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "C_C105"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "C_C105_0_1"
+        (rectangle
+          (start -6.35 -2.54)
+          (end 6.35 2.54)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "C_C105_1_1"
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "C_C106"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "C_C106_0_1"
+        (rectangle
+          (start -6.35 -2.54)
+          (end 6.35 2.54)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "C_C106_1_1"
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "C_C107"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "C_C107_0_1"
+        (rectangle
+          (start -6.35 -2.54)
+          (end 6.35 2.54)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "C_C107_1_1"
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "C_C108"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "C_C108_0_1"
+        (rectangle
+          (start -6.35 -2.54)
+          (end 6.35 2.54)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "C_C108_1_1"
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "C_C109"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "C_C109_0_1"
+        (rectangle
+          (start -6.35 -2.54)
+          (end 6.35 2.54)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "C_C109_1_1"
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "Regulator_U2"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "Regulator_U2_0_1"
         (rectangle
           (start -6.35 -5.08)
           (end 6.35 5.08)
@@ -780,7 +1132,7 @@
           (fill (type background))
         )
       )
-      (symbol "Regulator_1_1"
+      (symbol "Regulator_U2_1_1"
         (pin passive line
           (at -7.62 -2.54 0)
           (length 2.54)
@@ -867,12 +1219,12 @@
         )
       )
     )
-    (symbol "L"
+    (symbol "L_L1"
       (pin_numbers hide)
       (pin_names (offset 0.254))
       (in_bom yes)
       (on_board yes)
-      (symbol "L_0_1"
+      (symbol "L_L1_0_1"
         (rectangle
           (start -6.35 -2.54)
           (end 6.35 2.54)
@@ -880,7 +1232,7 @@
           (fill (type background))
         )
       )
-      (symbol "L_1_1"
+      (symbol "L_L1_1_1"
         (pin passive line
           (at -7.62 0 0)
           (length 2.54)
@@ -911,12 +1263,12 @@
         )
       )
     )
-    (symbol "R"
+    (symbol "C_C1"
       (pin_numbers hide)
       (pin_names (offset 0.254))
       (in_bom yes)
       (on_board yes)
-      (symbol "R_0_1"
+      (symbol "C_C1_0_1"
         (rectangle
           (start -6.35 -2.54)
           (end 6.35 2.54)
@@ -924,7 +1276,7 @@
           (fill (type background))
         )
       )
-      (symbol "R_1_1"
+      (symbol "C_C1_1_1"
         (pin passive line
           (at -7.62 0 0)
           (length 2.54)
@@ -955,12 +1307,144 @@
         )
       )
     )
-    (symbol "USB"
+    (symbol "C_C2"
       (pin_numbers hide)
       (pin_names (offset 0.254))
       (in_bom yes)
       (on_board yes)
-      (symbol "USB_0_1"
+      (symbol "C_C2_0_1"
+        (rectangle
+          (start -6.35 -2.54)
+          (end 6.35 2.54)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "C_C2_1_1"
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "R_R1"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "R_R1_0_1"
+        (rectangle
+          (start -6.35 -2.54)
+          (end 6.35 2.54)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "R_R1_1_1"
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "R_R2"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "R_R2_0_1"
+        (rectangle
+          (start -6.35 -2.54)
+          (end 6.35 2.54)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "R_R2_1_1"
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "Regulator_U3"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "Regulator_U3_0_1"
         (rectangle
           (start -6.35 -5.08)
           (end 6.35 5.08)
@@ -968,7 +1452,705 @@
           (fill (type background))
         )
       )
-      (symbol "USB_1_1"
+      (symbol "Regulator_U3_1_1"
+        (pin passive line
+          (at -7.62 -2.54 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at -7.62 2.54 0)
+          (length 2.54)
+          (name "3"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "3"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 -2.54 180)
+          (length 2.54)
+          (name "4"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "4"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "5"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "5"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 2.54 180)
+          (length 2.54)
+          (name "6"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "6"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "L_L2"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "L_L2_0_1"
+        (rectangle
+          (start -6.35 -2.54)
+          (end 6.35 2.54)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "L_L2_1_1"
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "C_C3"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "C_C3_0_1"
+        (rectangle
+          (start -6.35 -2.54)
+          (end 6.35 2.54)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "C_C3_1_1"
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "C_C4"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "C_C4_0_1"
+        (rectangle
+          (start -6.35 -2.54)
+          (end 6.35 2.54)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "C_C4_1_1"
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "R_R3"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "R_R3_0_1"
+        (rectangle
+          (start -6.35 -2.54)
+          (end 6.35 2.54)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "R_R3_1_1"
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "R_R4"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "R_R4_0_1"
+        (rectangle
+          (start -6.35 -2.54)
+          (end 6.35 2.54)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "R_R4_1_1"
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "Regulator_U4"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "Regulator_U4_0_1"
+        (rectangle
+          (start -6.35 -5.08)
+          (end 6.35 5.08)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "Regulator_U4_1_1"
+        (pin passive line
+          (at -7.62 -2.54 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at -7.62 2.54 0)
+          (length 2.54)
+          (name "3"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "3"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 -2.54 180)
+          (length 2.54)
+          (name "4"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "4"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "5"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "5"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 2.54 180)
+          (length 2.54)
+          (name "6"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "6"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "L_L3"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "L_L3_0_1"
+        (rectangle
+          (start -6.35 -2.54)
+          (end 6.35 2.54)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "L_L3_1_1"
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "C_C5"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "C_C5_0_1"
+        (rectangle
+          (start -6.35 -2.54)
+          (end 6.35 2.54)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "C_C5_1_1"
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "Regulator_U5"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "Regulator_U5_0_1"
+        (rectangle
+          (start -6.35 -3.81)
+          (end 6.35 3.81)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "Regulator_U5_1_1"
+        (pin passive line
+          (at -7.62 -1.27 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at -7.62 1.27 0)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 -1.27 180)
+          (length 2.54)
+          (name "3"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "3"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "C_C110"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "C_C110_0_1"
+        (rectangle
+          (start -6.35 -2.54)
+          (end 6.35 2.54)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "C_C110_1_1"
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "C_C111"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "C_C111_0_1"
+        (rectangle
+          (start -6.35 -2.54)
+          (end 6.35 2.54)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "C_C111_1_1"
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "C_C112"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "C_C112_0_1"
+        (rectangle
+          (start -6.35 -2.54)
+          (end 6.35 2.54)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "C_C112_1_1"
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "USB_J1"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "USB_J1_0_1"
+        (rectangle
+          (start -6.35 -5.08)
+          (end 6.35 5.08)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "USB_J1_1_1"
         (pin passive line
           (at -7.62 -2.54 0)
           (length 2.54)
@@ -1055,12 +2237,12 @@
         )
       )
     )
-    (symbol "Diode"
+    (symbol "Diode_U6"
       (pin_numbers hide)
       (pin_names (offset 0.254))
       (in_bom yes)
       (on_board yes)
-      (symbol "Diode_0_1"
+      (symbol "Diode_U6_0_1"
         (rectangle
           (start -6.35 -5.08)
           (end 6.35 5.08)
@@ -1068,7 +2250,7 @@
           (fill (type background))
         )
       )
-      (symbol "Diode_1_1"
+      (symbol "Diode_U6_1_1"
         (pin passive line
           (at -7.62 -2.54 0)
           (length 2.54)
@@ -1155,12 +2337,12 @@
         )
       )
     )
-    (symbol "MotorDriver"
+    (symbol "MotorDriver_U7"
       (pin_numbers hide)
       (pin_names (offset 0.254))
       (in_bom yes)
       (on_board yes)
-      (symbol "MotorDriver_0_1"
+      (symbol "MotorDriver_U7_0_1"
         (rectangle
           (start -6.35 -16.51)
           (end 6.35 16.51)
@@ -1168,7 +2350,7 @@
           (fill (type background))
         )
       )
-      (symbol "MotorDriver_1_1"
+      (symbol "MotorDriver_U7_1_1"
         (pin passive line
           (at -7.62 -13.97 0)
           (length 2.54)
@@ -1507,12 +2689,12 @@
         )
       )
     )
-    (symbol "Q"
+    (symbol "Q_Q1"
       (pin_numbers hide)
       (pin_names (offset 0.254))
       (in_bom yes)
       (on_board yes)
-      (symbol "Q_0_1"
+      (symbol "Q_Q1_0_1"
         (rectangle
           (start -6.35 -3.81)
           (end 6.35 3.81)
@@ -1520,7 +2702,7 @@
           (fill (type background))
         )
       )
-      (symbol "Q_1_1"
+      (symbol "Q_Q1_1_1"
         (pin passive line
           (at -7.62 -1.27 0)
           (length 2.54)
@@ -1565,12 +2747,12 @@
         )
       )
     )
-    (symbol "Conn"
+    (symbol "Q_Q2"
       (pin_numbers hide)
       (pin_names (offset 0.254))
       (in_bom yes)
       (on_board yes)
-      (symbol "Conn_0_1"
+      (symbol "Q_Q2_0_1"
         (rectangle
           (start -6.35 -3.81)
           (end 6.35 3.81)
@@ -1578,7 +2760,7 @@
           (fill (type background))
         )
       )
-      (symbol "Conn_1_1"
+      (symbol "Q_Q2_1_1"
         (pin passive line
           (at -7.62 -1.27 0)
           (length 2.54)
@@ -1623,12 +2805,566 @@
         )
       )
     )
-    (symbol "RF"
+    (symbol "Q_Q3"
       (pin_numbers hide)
       (pin_names (offset 0.254))
       (in_bom yes)
       (on_board yes)
-      (symbol "RF_0_1"
+      (symbol "Q_Q3_0_1"
+        (rectangle
+          (start -6.35 -3.81)
+          (end 6.35 3.81)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "Q_Q3_1_1"
+        (pin passive line
+          (at -7.62 -1.27 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at -7.62 1.27 0)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 -1.27 180)
+          (length 2.54)
+          (name "3"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "3"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "Q_Q4"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "Q_Q4_0_1"
+        (rectangle
+          (start -6.35 -3.81)
+          (end 6.35 3.81)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "Q_Q4_1_1"
+        (pin passive line
+          (at -7.62 -1.27 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at -7.62 1.27 0)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 -1.27 180)
+          (length 2.54)
+          (name "3"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "3"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "Q_Q5"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "Q_Q5_0_1"
+        (rectangle
+          (start -6.35 -3.81)
+          (end 6.35 3.81)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "Q_Q5_1_1"
+        (pin passive line
+          (at -7.62 -1.27 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at -7.62 1.27 0)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 -1.27 180)
+          (length 2.54)
+          (name "3"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "3"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "Q_Q6"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "Q_Q6_0_1"
+        (rectangle
+          (start -6.35 -3.81)
+          (end 6.35 3.81)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "Q_Q6_1_1"
+        (pin passive line
+          (at -7.62 -1.27 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at -7.62 1.27 0)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 -1.27 180)
+          (length 2.54)
+          (name "3"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "3"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "R_R5"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "R_R5_0_1"
+        (rectangle
+          (start -6.35 -2.54)
+          (end 6.35 2.54)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "R_R5_1_1"
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "R_R6"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "R_R6_0_1"
+        (rectangle
+          (start -6.35 -2.54)
+          (end 6.35 2.54)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "R_R6_1_1"
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "R_R7"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "R_R7_0_1"
+        (rectangle
+          (start -6.35 -2.54)
+          (end 6.35 2.54)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "R_R7_1_1"
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "C_C20"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "C_C20_0_1"
+        (rectangle
+          (start -6.35 -2.54)
+          (end 6.35 2.54)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "C_C20_1_1"
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "C_C21"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "C_C21_0_1"
+        (rectangle
+          (start -6.35 -2.54)
+          (end 6.35 2.54)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "C_C21_1_1"
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "Conn_J2"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "Conn_J2_0_1"
+        (rectangle
+          (start -6.35 -3.81)
+          (end 6.35 3.81)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "Conn_J2_1_1"
+        (pin passive line
+          (at -7.62 -1.27 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at -7.62 1.27 0)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 -1.27 180)
+          (length 2.54)
+          (name "3"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "3"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "Conn_J5"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "Conn_J5_0_1"
+        (rectangle
+          (start -6.35 -2.54)
+          (end 6.35 2.54)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "Conn_J5_1_1"
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "RF_U8"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "RF_U8_0_1"
         (rectangle
           (start -6.35 -7.62)
           (end 6.35 7.62)
@@ -1636,7 +3372,7 @@
           (fill (type background))
         )
       )
-      (symbol "RF_1_1"
+      (symbol "RF_U8_1_1"
         (pin passive line
           (at -7.62 -5.08 0)
           (length 2.54)
@@ -1779,12 +3515,12 @@
         )
       )
     )
-    (symbol "Antenna"
+    (symbol "L_L4"
       (pin_numbers hide)
       (pin_names (offset 0.254))
       (in_bom yes)
       (on_board yes)
-      (symbol "Antenna_0_1"
+      (symbol "L_L4_0_1"
         (rectangle
           (start -6.35 -2.54)
           (end 6.35 2.54)
@@ -1792,7 +3528,95 @@
           (fill (type background))
         )
       )
-      (symbol "Antenna_1_1"
+      (symbol "L_L4_1_1"
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "C_C30"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "C_C30_0_1"
+        (rectangle
+          (start -6.35 -2.54)
+          (end 6.35 2.54)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "C_C30_1_1"
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "Antenna_ANT1"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "Antenna_ANT1_0_1"
+        (rectangle
+          (start -6.35 -2.54)
+          (end 6.35 2.54)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "Antenna_ANT1_1_1"
         (pin passive line
           (at -7.62 0 0)
           (length 2.54)
@@ -1809,12 +3633,56 @@
         )
       )
     )
-    (symbol "IMU"
+    (symbol "C_C113"
       (pin_numbers hide)
       (pin_names (offset 0.254))
       (in_bom yes)
       (on_board yes)
-      (symbol "IMU_0_1"
+      (symbol "C_C113_0_1"
+        (rectangle
+          (start -6.35 -2.54)
+          (end 6.35 2.54)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "C_C113_1_1"
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "IMU_U9"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "IMU_U9_0_1"
         (rectangle
           (start -6.35 -6.35)
           (end 6.35 6.35)
@@ -1822,7 +3690,7 @@
           (fill (type background))
         )
       )
-      (symbol "IMU_1_1"
+      (symbol "IMU_U9_1_1"
         (pin passive line
           (at -7.62 -3.81 0)
           (length 2.54)
@@ -1937,12 +3805,12 @@
         )
       )
     )
-    (symbol "Sensor"
+    (symbol "Sensor_U10"
       (pin_numbers hide)
       (pin_names (offset 0.254))
       (in_bom yes)
       (on_board yes)
-      (symbol "Sensor_0_1"
+      (symbol "Sensor_U10_0_1"
         (rectangle
           (start -6.35 -3.81)
           (end 6.35 3.81)
@@ -1950,7 +3818,7 @@
           (fill (type background))
         )
       )
-      (symbol "Sensor_1_1"
+      (symbol "Sensor_U10_1_1"
         (pin passive line
           (at -7.62 -1.27 0)
           (length 2.54)
@@ -2009,12 +3877,84 @@
         )
       )
     )
-    (symbol "ADC"
+    (symbol "Sensor_U11"
       (pin_numbers hide)
       (pin_names (offset 0.254))
       (in_bom yes)
       (on_board yes)
-      (symbol "ADC_0_1"
+      (symbol "Sensor_U11_0_1"
+        (rectangle
+          (start -6.35 -3.81)
+          (end 6.35 3.81)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "Sensor_U11_1_1"
+        (pin passive line
+          (at -7.62 -1.27 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at -7.62 1.27 0)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 -1.27 180)
+          (length 2.54)
+          (name "3"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "3"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 1.27 180)
+          (length 2.54)
+          (name "4"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "4"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "ADC_U12"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "ADC_U12_0_1"
         (rectangle
           (start -6.35 -7.62)
           (end 6.35 7.62)
@@ -2022,7 +3962,7 @@
           (fill (type background))
         )
       )
-      (symbol "ADC_1_1"
+      (symbol "ADC_U12_1_1"
         (pin passive line
           (at -7.62 -5.08 0)
           (length 2.54)
@@ -2165,12 +4105,360 @@
         )
       )
     )
-    (symbol "Crystal"
+    (symbol "C_C114"
       (pin_numbers hide)
       (pin_names (offset 0.254))
       (in_bom yes)
       (on_board yes)
-      (symbol "Crystal_0_1"
+      (symbol "C_C114_0_1"
+        (rectangle
+          (start -6.35 -2.54)
+          (end 6.35 2.54)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "C_C114_1_1"
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "C_C115"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "C_C115_0_1"
+        (rectangle
+          (start -6.35 -2.54)
+          (end 6.35 2.54)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "C_C115_1_1"
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "C_C116"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "C_C116_0_1"
+        (rectangle
+          (start -6.35 -2.54)
+          (end 6.35 2.54)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "C_C116_1_1"
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "R_R10"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "R_R10_0_1"
+        (rectangle
+          (start -6.35 -2.54)
+          (end 6.35 2.54)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "R_R10_1_1"
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "R_R11"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "R_R11_0_1"
+        (rectangle
+          (start -6.35 -2.54)
+          (end 6.35 2.54)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "R_R11_1_1"
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "Sensor_U13"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "Sensor_U13_0_1"
+        (rectangle
+          (start -6.35 -6.35)
+          (end 6.35 6.35)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "Sensor_U13_1_1"
+        (pin passive line
+          (at -7.62 -3.81 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at -7.62 -1.27 0)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at -7.62 1.27 0)
+          (length 2.54)
+          (name "3"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "3"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at -7.62 3.81 0)
+          (length 2.54)
+          (name "4"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "4"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 -3.81 180)
+          (length 2.54)
+          (name "5"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "5"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 -1.27 180)
+          (length 2.54)
+          (name "6"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "6"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 1.27 180)
+          (length 2.54)
+          (name "7"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "7"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 3.81 180)
+          (length 2.54)
+          (name "8"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "8"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "Conn_J6"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "Conn_J6_0_1"
         (rectangle
           (start -6.35 -3.81)
           (end 6.35 3.81)
@@ -2178,7 +4466,7 @@
           (fill (type background))
         )
       )
-      (symbol "Crystal_1_1"
+      (symbol "Conn_J6_1_1"
         (pin passive line
           (at -7.62 -1.27 0)
           (length 2.54)
@@ -2237,12 +4525,400 @@
         )
       )
     )
-    (symbol "D"
+    (symbol "Crystal_Y1"
       (pin_numbers hide)
       (pin_names (offset 0.254))
       (in_bom yes)
       (on_board yes)
-      (symbol "D_0_1"
+      (symbol "Crystal_Y1_0_1"
+        (rectangle
+          (start -6.35 -3.81)
+          (end 6.35 3.81)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "Crystal_Y1_1_1"
+        (pin passive line
+          (at -7.62 -1.27 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at -7.62 1.27 0)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 -1.27 180)
+          (length 2.54)
+          (name "3"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "3"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 1.27 180)
+          (length 2.54)
+          (name "4"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "4"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "Crystal_Y2"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "Crystal_Y2_0_1"
+        (rectangle
+          (start -6.35 -3.81)
+          (end 6.35 3.81)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "Crystal_Y2_1_1"
+        (pin passive line
+          (at -7.62 -1.27 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at -7.62 1.27 0)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 -1.27 180)
+          (length 2.54)
+          (name "3"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "3"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 1.27 180)
+          (length 2.54)
+          (name "4"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "4"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "Conn_J3"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "Conn_J3_0_1"
+        (rectangle
+          (start -6.35 -3.81)
+          (end 6.35 3.81)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "Conn_J3_1_1"
+        (pin passive line
+          (at -7.62 -1.27 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at -7.62 1.27 0)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 -1.27 180)
+          (length 2.54)
+          (name "3"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "3"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 1.27 180)
+          (length 2.54)
+          (name "4"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "4"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "Conn_J4"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "Conn_J4_0_1"
+        (rectangle
+          (start -6.35 -5.08)
+          (end 6.35 5.08)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "Conn_J4_1_1"
+        (pin passive line
+          (at -7.62 -2.54 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at -7.62 2.54 0)
+          (length 2.54)
+          (name "3"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "3"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 -2.54 180)
+          (length 2.54)
+          (name "4"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "4"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "5"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "5"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 2.54 180)
+          (length 2.54)
+          (name "6"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "6"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "Conn_J7"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "Conn_J7_0_1"
+        (rectangle
+          (start -6.35 -3.81)
+          (end 6.35 3.81)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "Conn_J7_1_1"
+        (pin passive line
+          (at -7.62 -1.27 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at -7.62 1.27 0)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 -1.27 180)
+          (length 2.54)
+          (name "3"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "3"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 1.27 180)
+          (length 2.54)
+          (name "4"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "4"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "D_D1"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "D_D1_0_1"
         (rectangle
           (start -6.35 -2.54)
           (end 6.35 2.54)
@@ -2250,7 +4926,7 @@
           (fill (type background))
         )
       )
-      (symbol "D_1_1"
+      (symbol "D_D1_1_1"
         (pin passive line
           (at -7.62 0 0)
           (length 2.54)
@@ -2281,12 +4957,12 @@
         )
       )
     )
-    (symbol "TestPoint"
+    (symbol "D_D2"
       (pin_numbers hide)
       (pin_names (offset 0.254))
       (in_bom yes)
       (on_board yes)
-      (symbol "TestPoint_0_1"
+      (symbol "D_D2_0_1"
         (rectangle
           (start -6.35 -2.54)
           (end 6.35 2.54)
@@ -2294,7 +4970,169 @@
           (fill (type background))
         )
       )
-      (symbol "TestPoint_1_1"
+      (symbol "D_D2_1_1"
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "R_R12"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "R_R12_0_1"
+        (rectangle
+          (start -6.35 -2.54)
+          (end 6.35 2.54)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "R_R12_1_1"
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "R_R13"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "R_R13_0_1"
+        (rectangle
+          (start -6.35 -2.54)
+          (end 6.35 2.54)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "R_R13_1_1"
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+        (pin passive line
+          (at 7.62 0 180)
+          (length 2.54)
+          (name "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "2"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "TestPoint_TP1"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "TestPoint_TP1_0_1"
+        (rectangle
+          (start -6.35 -2.54)
+          (end 6.35 2.54)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "TestPoint_TP1_1_1"
+        (pin passive line
+          (at -7.62 0 0)
+          (length 2.54)
+          (name "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+          (number "1"
+            (effects
+              (font (size 1.27 1.27))
+            )
+          )
+        )
+      )
+    )
+    (symbol "TestPoint_TP2"
+      (pin_numbers hide)
+      (pin_names (offset 0.254))
+      (in_bom yes)
+      (on_board yes)
+      (symbol "TestPoint_TP2_0_1"
+        (rectangle
+          (start -6.35 -2.54)
+          (end 6.35 2.54)
+          (stroke (width 0.254) (type default))
+          (fill (type background))
+        )
+      )
+      (symbol "TestPoint_TP2_1_1"
         (pin passive line
           (at -7.62 0 0)
           (length 2.54)
@@ -2313,7 +5151,7 @@
     )
   )
   (symbol
-    (lib_id "MCU")
+    (lib_id "MCU_U1")
     (at 30 30 0)
     (unit 1)
     (in_bom yes)
@@ -2739,7 +5577,7 @@
     (uuid "00000000-0000-0000-0000-0000000000f9")
   )
   (symbol
-    (lib_id "C")
+    (lib_id "C_C101")
     (at 65 30 0)
     (unit 1)
     (in_bom yes)
@@ -2781,7 +5619,7 @@
     (uuid "00000000-0000-0000-0000-0000000000fc")
   )
   (symbol
-    (lib_id "C")
+    (lib_id "C_C102")
     (at 100 30 0)
     (unit 1)
     (in_bom yes)
@@ -2823,7 +5661,7 @@
     (uuid "00000000-0000-0000-0000-0000000000ff")
   )
   (symbol
-    (lib_id "C")
+    (lib_id "C_C103")
     (at 135 30 0)
     (unit 1)
     (in_bom yes)
@@ -2865,7 +5703,7 @@
     (uuid "00000000-0000-0000-0000-000000000102")
   )
   (symbol
-    (lib_id "C")
+    (lib_id "C_C104")
     (at 170 30 0)
     (unit 1)
     (in_bom yes)
@@ -2907,7 +5745,7 @@
     (uuid "00000000-0000-0000-0000-000000000105")
   )
   (symbol
-    (lib_id "C")
+    (lib_id "C_C105")
     (at 205 30 0)
     (unit 1)
     (in_bom yes)
@@ -2949,7 +5787,7 @@
     (uuid "00000000-0000-0000-0000-000000000108")
   )
   (symbol
-    (lib_id "C")
+    (lib_id "C_C106")
     (at 30 65 0)
     (unit 1)
     (in_bom yes)
@@ -2991,7 +5829,7 @@
     (uuid "00000000-0000-0000-0000-00000000010b")
   )
   (symbol
-    (lib_id "C")
+    (lib_id "C_C107")
     (at 65 65 0)
     (unit 1)
     (in_bom yes)
@@ -3033,7 +5871,7 @@
     (uuid "00000000-0000-0000-0000-00000000010e")
   )
   (symbol
-    (lib_id "C")
+    (lib_id "C_C108")
     (at 100 65 0)
     (unit 1)
     (in_bom yes)
@@ -3075,7 +5913,7 @@
     (uuid "00000000-0000-0000-0000-000000000111")
   )
   (symbol
-    (lib_id "C")
+    (lib_id "C_C109")
     (at 135 65 0)
     (unit 1)
     (in_bom yes)
@@ -3117,7 +5955,7 @@
     (uuid "00000000-0000-0000-0000-000000000114")
   )
   (symbol
-    (lib_id "Regulator")
+    (lib_id "Regulator_U2")
     (at 170 65 0)
     (unit 1)
     (in_bom yes)
@@ -3191,7 +6029,7 @@
     (uuid "00000000-0000-0000-0000-00000000011b")
   )
   (symbol
-    (lib_id "L")
+    (lib_id "L_L1")
     (at 205 65 0)
     (unit 1)
     (in_bom yes)
@@ -3233,7 +6071,7 @@
     (uuid "00000000-0000-0000-0000-00000000011e")
   )
   (symbol
-    (lib_id "C")
+    (lib_id "C_C1")
     (at 30 100 0)
     (unit 1)
     (in_bom yes)
@@ -3275,7 +6113,7 @@
     (uuid "00000000-0000-0000-0000-000000000121")
   )
   (symbol
-    (lib_id "C")
+    (lib_id "C_C2")
     (at 65 100 0)
     (unit 1)
     (in_bom yes)
@@ -3317,7 +6155,7 @@
     (uuid "00000000-0000-0000-0000-000000000124")
   )
   (symbol
-    (lib_id "R")
+    (lib_id "R_R1")
     (at 100 100 0)
     (unit 1)
     (in_bom yes)
@@ -3359,7 +6197,7 @@
     (uuid "00000000-0000-0000-0000-000000000127")
   )
   (symbol
-    (lib_id "R")
+    (lib_id "R_R2")
     (at 135 100 0)
     (unit 1)
     (in_bom yes)
@@ -3401,7 +6239,7 @@
     (uuid "00000000-0000-0000-0000-00000000012a")
   )
   (symbol
-    (lib_id "Regulator")
+    (lib_id "Regulator_U3")
     (at 170 100 0)
     (unit 1)
     (in_bom yes)
@@ -3475,7 +6313,7 @@
     (uuid "00000000-0000-0000-0000-000000000131")
   )
   (symbol
-    (lib_id "L")
+    (lib_id "L_L2")
     (at 205 100 0)
     (unit 1)
     (in_bom yes)
@@ -3517,7 +6355,7 @@
     (uuid "00000000-0000-0000-0000-000000000134")
   )
   (symbol
-    (lib_id "C")
+    (lib_id "C_C3")
     (at 30 135 0)
     (unit 1)
     (in_bom yes)
@@ -3559,7 +6397,7 @@
     (uuid "00000000-0000-0000-0000-000000000137")
   )
   (symbol
-    (lib_id "C")
+    (lib_id "C_C4")
     (at 65 135 0)
     (unit 1)
     (in_bom yes)
@@ -3601,7 +6439,7 @@
     (uuid "00000000-0000-0000-0000-00000000013a")
   )
   (symbol
-    (lib_id "R")
+    (lib_id "R_R3")
     (at 100 135 0)
     (unit 1)
     (in_bom yes)
@@ -3643,7 +6481,7 @@
     (uuid "00000000-0000-0000-0000-00000000013d")
   )
   (symbol
-    (lib_id "R")
+    (lib_id "R_R4")
     (at 135 135 0)
     (unit 1)
     (in_bom yes)
@@ -3685,7 +6523,7 @@
     (uuid "00000000-0000-0000-0000-000000000140")
   )
   (symbol
-    (lib_id "Regulator")
+    (lib_id "Regulator_U4")
     (at 170 135 0)
     (unit 1)
     (in_bom yes)
@@ -3759,7 +6597,7 @@
     (uuid "00000000-0000-0000-0000-000000000147")
   )
   (symbol
-    (lib_id "L")
+    (lib_id "L_L3")
     (at 205 135 0)
     (unit 1)
     (in_bom yes)
@@ -3801,7 +6639,7 @@
     (uuid "00000000-0000-0000-0000-00000000014a")
   )
   (symbol
-    (lib_id "C")
+    (lib_id "C_C5")
     (at 30 170 0)
     (unit 1)
     (in_bom yes)
@@ -3843,7 +6681,7 @@
     (uuid "00000000-0000-0000-0000-00000000014d")
   )
   (symbol
-    (lib_id "Regulator")
+    (lib_id "Regulator_U5")
     (at 65 170 0)
     (unit 1)
     (in_bom yes)
@@ -3893,7 +6731,7 @@
     (uuid "00000000-0000-0000-0000-000000000151")
   )
   (symbol
-    (lib_id "C")
+    (lib_id "C_C110")
     (at 100 170 0)
     (unit 1)
     (in_bom yes)
@@ -3935,7 +6773,7 @@
     (uuid "00000000-0000-0000-0000-000000000154")
   )
   (symbol
-    (lib_id "C")
+    (lib_id "C_C111")
     (at 135 170 0)
     (unit 1)
     (in_bom yes)
@@ -3977,7 +6815,7 @@
     (uuid "00000000-0000-0000-0000-000000000157")
   )
   (symbol
-    (lib_id "C")
+    (lib_id "C_C112")
     (at 170 170 0)
     (unit 1)
     (in_bom yes)
@@ -4019,7 +6857,7 @@
     (uuid "00000000-0000-0000-0000-00000000015a")
   )
   (symbol
-    (lib_id "USB")
+    (lib_id "USB_J1")
     (at 205 170 0)
     (unit 1)
     (in_bom yes)
@@ -4093,7 +6931,7 @@
     (uuid "00000000-0000-0000-0000-000000000161")
   )
   (symbol
-    (lib_id "Diode")
+    (lib_id "Diode_U6")
     (at 30 205 0)
     (unit 1)
     (in_bom yes)
@@ -4167,7 +7005,7 @@
     (uuid "00000000-0000-0000-0000-000000000168")
   )
   (symbol
-    (lib_id "MotorDriver")
+    (lib_id "MotorDriver_U7")
     (at 65 205 0)
     (unit 1)
     (in_bom yes)
@@ -4385,7 +7223,7 @@
     (uuid "00000000-0000-0000-0000-000000000181")
   )
   (symbol
-    (lib_id "Q")
+    (lib_id "Q_Q1")
     (at 100 205 0)
     (unit 1)
     (in_bom yes)
@@ -4435,7 +7273,7 @@
     (uuid "00000000-0000-0000-0000-000000000185")
   )
   (symbol
-    (lib_id "Q")
+    (lib_id "Q_Q2")
     (at 135 205 0)
     (unit 1)
     (in_bom yes)
@@ -4485,7 +7323,7 @@
     (uuid "00000000-0000-0000-0000-000000000189")
   )
   (symbol
-    (lib_id "Q")
+    (lib_id "Q_Q3")
     (at 170 205 0)
     (unit 1)
     (in_bom yes)
@@ -4535,7 +7373,7 @@
     (uuid "00000000-0000-0000-0000-00000000018d")
   )
   (symbol
-    (lib_id "Q")
+    (lib_id "Q_Q4")
     (at 205 205 0)
     (unit 1)
     (in_bom yes)
@@ -4585,7 +7423,7 @@
     (uuid "00000000-0000-0000-0000-000000000191")
   )
   (symbol
-    (lib_id "Q")
+    (lib_id "Q_Q5")
     (at 30 240 0)
     (unit 1)
     (in_bom yes)
@@ -4635,7 +7473,7 @@
     (uuid "00000000-0000-0000-0000-000000000195")
   )
   (symbol
-    (lib_id "Q")
+    (lib_id "Q_Q6")
     (at 65 240 0)
     (unit 1)
     (in_bom yes)
@@ -4685,7 +7523,7 @@
     (uuid "00000000-0000-0000-0000-000000000199")
   )
   (symbol
-    (lib_id "R")
+    (lib_id "R_R5")
     (at 100 240 0)
     (unit 1)
     (in_bom yes)
@@ -4727,7 +7565,7 @@
     (uuid "00000000-0000-0000-0000-00000000019c")
   )
   (symbol
-    (lib_id "R")
+    (lib_id "R_R6")
     (at 135 240 0)
     (unit 1)
     (in_bom yes)
@@ -4769,7 +7607,7 @@
     (uuid "00000000-0000-0000-0000-00000000019f")
   )
   (symbol
-    (lib_id "R")
+    (lib_id "R_R7")
     (at 170 240 0)
     (unit 1)
     (in_bom yes)
@@ -4811,7 +7649,7 @@
     (uuid "00000000-0000-0000-0000-0000000001a2")
   )
   (symbol
-    (lib_id "C")
+    (lib_id "C_C20")
     (at 205 240 0)
     (unit 1)
     (in_bom yes)
@@ -4853,7 +7691,7 @@
     (uuid "00000000-0000-0000-0000-0000000001a5")
   )
   (symbol
-    (lib_id "C")
+    (lib_id "C_C21")
     (at 30 275 0)
     (unit 1)
     (in_bom yes)
@@ -4895,7 +7733,7 @@
     (uuid "00000000-0000-0000-0000-0000000001a8")
   )
   (symbol
-    (lib_id "Conn")
+    (lib_id "Conn_J2")
     (at 65 275 0)
     (unit 1)
     (in_bom yes)
@@ -4945,7 +7783,7 @@
     (uuid "00000000-0000-0000-0000-0000000001ac")
   )
   (symbol
-    (lib_id "Conn")
+    (lib_id "Conn_J5")
     (at 100 275 0)
     (unit 1)
     (in_bom yes)
@@ -4987,7 +7825,7 @@
     (uuid "00000000-0000-0000-0000-0000000001af")
   )
   (symbol
-    (lib_id "RF")
+    (lib_id "RF_U8")
     (at 135 275 0)
     (unit 1)
     (in_bom yes)
@@ -5093,7 +7931,7 @@
     (uuid "00000000-0000-0000-0000-0000000001ba")
   )
   (symbol
-    (lib_id "L")
+    (lib_id "L_L4")
     (at 170 275 0)
     (unit 1)
     (in_bom yes)
@@ -5135,7 +7973,7 @@
     (uuid "00000000-0000-0000-0000-0000000001bd")
   )
   (symbol
-    (lib_id "C")
+    (lib_id "C_C30")
     (at 205 275 0)
     (unit 1)
     (in_bom yes)
@@ -5177,7 +8015,7 @@
     (uuid "00000000-0000-0000-0000-0000000001c0")
   )
   (symbol
-    (lib_id "Antenna")
+    (lib_id "Antenna_ANT1")
     (at 30 310 0)
     (unit 1)
     (in_bom yes)
@@ -5211,7 +8049,7 @@
     (uuid "00000000-0000-0000-0000-0000000001c2")
   )
   (symbol
-    (lib_id "C")
+    (lib_id "C_C113")
     (at 65 310 0)
     (unit 1)
     (in_bom yes)
@@ -5253,7 +8091,7 @@
     (uuid "00000000-0000-0000-0000-0000000001c5")
   )
   (symbol
-    (lib_id "IMU")
+    (lib_id "IMU_U9")
     (at 100 310 0)
     (unit 1)
     (in_bom yes)
@@ -5343,7 +8181,7 @@
     (uuid "00000000-0000-0000-0000-0000000001ce")
   )
   (symbol
-    (lib_id "Sensor")
+    (lib_id "Sensor_U10")
     (at 135 310 0)
     (unit 1)
     (in_bom yes)
@@ -5401,7 +8239,7 @@
     (uuid "00000000-0000-0000-0000-0000000001d3")
   )
   (symbol
-    (lib_id "Sensor")
+    (lib_id "Sensor_U11")
     (at 170 310 0)
     (unit 1)
     (in_bom yes)
@@ -5459,7 +8297,7 @@
     (uuid "00000000-0000-0000-0000-0000000001d8")
   )
   (symbol
-    (lib_id "ADC")
+    (lib_id "ADC_U12")
     (at 205 310 0)
     (unit 1)
     (in_bom yes)
@@ -5565,7 +8403,7 @@
     (uuid "00000000-0000-0000-0000-0000000001e3")
   )
   (symbol
-    (lib_id "C")
+    (lib_id "C_C114")
     (at 30 345 0)
     (unit 1)
     (in_bom yes)
@@ -5607,7 +8445,7 @@
     (uuid "00000000-0000-0000-0000-0000000001e6")
   )
   (symbol
-    (lib_id "C")
+    (lib_id "C_C115")
     (at 65 345 0)
     (unit 1)
     (in_bom yes)
@@ -5649,7 +8487,7 @@
     (uuid "00000000-0000-0000-0000-0000000001e9")
   )
   (symbol
-    (lib_id "C")
+    (lib_id "C_C116")
     (at 100 345 0)
     (unit 1)
     (in_bom yes)
@@ -5691,7 +8529,7 @@
     (uuid "00000000-0000-0000-0000-0000000001ec")
   )
   (symbol
-    (lib_id "R")
+    (lib_id "R_R10")
     (at 135 345 0)
     (unit 1)
     (in_bom yes)
@@ -5733,7 +8571,7 @@
     (uuid "00000000-0000-0000-0000-0000000001ef")
   )
   (symbol
-    (lib_id "R")
+    (lib_id "R_R11")
     (at 170 345 0)
     (unit 1)
     (in_bom yes)
@@ -5775,7 +8613,7 @@
     (uuid "00000000-0000-0000-0000-0000000001f2")
   )
   (symbol
-    (lib_id "Sensor")
+    (lib_id "Sensor_U13")
     (at 205 345 0)
     (unit 1)
     (in_bom yes)
@@ -5865,7 +8703,7 @@
     (uuid "00000000-0000-0000-0000-0000000001fb")
   )
   (symbol
-    (lib_id "Conn")
+    (lib_id "Conn_J6")
     (at 30 380 0)
     (unit 1)
     (in_bom yes)
@@ -5923,7 +8761,7 @@
     (uuid "00000000-0000-0000-0000-000000000200")
   )
   (symbol
-    (lib_id "Crystal")
+    (lib_id "Crystal_Y1")
     (at 65 380 0)
     (unit 1)
     (in_bom yes)
@@ -5981,7 +8819,7 @@
     (uuid "00000000-0000-0000-0000-000000000205")
   )
   (symbol
-    (lib_id "Crystal")
+    (lib_id "Crystal_Y2")
     (at 100 380 0)
     (unit 1)
     (in_bom yes)
@@ -6039,7 +8877,7 @@
     (uuid "00000000-0000-0000-0000-00000000020a")
   )
   (symbol
-    (lib_id "Conn")
+    (lib_id "Conn_J3")
     (at 135 380 0)
     (unit 1)
     (in_bom yes)
@@ -6097,7 +8935,7 @@
     (uuid "00000000-0000-0000-0000-00000000020f")
   )
   (symbol
-    (lib_id "Conn")
+    (lib_id "Conn_J4")
     (at 170 380 0)
     (unit 1)
     (in_bom yes)
@@ -6171,7 +9009,7 @@
     (uuid "00000000-0000-0000-0000-000000000216")
   )
   (symbol
-    (lib_id "Conn")
+    (lib_id "Conn_J7")
     (at 205 380 0)
     (unit 1)
     (in_bom yes)
@@ -6229,7 +9067,7 @@
     (uuid "00000000-0000-0000-0000-00000000021b")
   )
   (symbol
-    (lib_id "D")
+    (lib_id "D_D1")
     (at 30 415 0)
     (unit 1)
     (in_bom yes)
@@ -6271,7 +9109,7 @@
     (uuid "00000000-0000-0000-0000-00000000021e")
   )
   (symbol
-    (lib_id "D")
+    (lib_id "D_D2")
     (at 65 415 0)
     (unit 1)
     (in_bom yes)
@@ -6313,7 +9151,7 @@
     (uuid "00000000-0000-0000-0000-000000000221")
   )
   (symbol
-    (lib_id "R")
+    (lib_id "R_R12")
     (at 100 415 0)
     (unit 1)
     (in_bom yes)
@@ -6355,7 +9193,7 @@
     (uuid "00000000-0000-0000-0000-000000000224")
   )
   (symbol
-    (lib_id "R")
+    (lib_id "R_R13")
     (at 135 415 0)
     (unit 1)
     (in_bom yes)
@@ -6397,7 +9235,7 @@
     (uuid "00000000-0000-0000-0000-000000000227")
   )
   (symbol
-    (lib_id "TestPoint")
+    (lib_id "TestPoint_TP1")
     (at 170 415 0)
     (unit 1)
     (in_bom yes)
@@ -6431,7 +9269,7 @@
     (uuid "00000000-0000-0000-0000-000000000229")
   )
   (symbol
-    (lib_id "TestPoint")
+    (lib_id "TestPoint_TP2")
     (at 205 415 0)
     (unit 1)
     (in_bom yes)

@@ -1,10 +1,10 @@
 // Turn a raw netlist into a classified Design: component roles, net classes,
 // functional clusters (buck/usb/rf/sensor/motor), routing priorities, footprints.
 
-import { footprintGeom } from "./footprints";
+import { FootprintGeom, resolveFootprint, UnresolvedFootprintEntry, UnresolvedFootprintError } from "./footprints";
 import { RawComponent, RawNetlist } from "./schematic";
 import {
-  BoardSpec, Cluster, CompPin, Component, Design, Net, NetClass, Role,
+  BoardSpec, Cluster, CompPin, Component, Design, FootprintAssumption, Net, NetClass, Role,
 } from "./types";
 
 function refPrefix(ref: string): string {
@@ -77,17 +77,36 @@ export function buildDesign(raw: RawNetlist, board: BoardSpec): Design {
   const pinToNet = new Map<string, string>();
   for (const n of nets) for (const pr of n.pins) pinToNet.set(`${pr.ref}:${pr.pad}`, n.name);
 
-  // components
-  const footprints: Record<string, any> = {};
+  // components + footprint resolution (accumulate all failures, then throw once)
+  const footprints: Record<string, FootprintGeom> = {};
+  const footprintAssumptions: FootprintAssumption[] = [];
+  const unresolved: UnresolvedFootprintEntry[] = [];
   const components: Component[] = raw.components.map((rc) => {
     const pins: CompPin[] = rc.pins.map((p) => ({
       num: p.num, name: p.name, net: pinToNet.get(`${rc.ref}:${p.num}`) || "",
     }));
     const netsOf = pins.map((p) => p.net).filter(Boolean);
     const role = classifyRole(rc, netsOf);
-    footprints[rc.ref] = footprintGeom(rc.footprint || rc.libId, rc.value, rc.pins.map((p) => p.num), rc.ref);
-    return { ref: rc.ref, value: rc.value, libId: rc.footprint || rc.libId, pins, role };
+    const pkg = rc.footprint || rc.libId;
+    const resolved = resolveFootprint(pkg, rc.value, rc.pins.map((p) => p.num), rc.ref);
+    if (resolved.ok) {
+      footprints[rc.ref] = resolved.geom;
+      if (resolved.assumption) footprintAssumptions.push(resolved.assumption);
+    } else {
+      unresolved.push({
+        ref: rc.ref,
+        package: resolved.package,
+        nets: [...new Set(netsOf)],
+        reason: resolved.reason,
+        detail: resolved.detail,
+      });
+    }
+    return { ref: rc.ref, value: rc.value, libId: pkg, pins, role };
   });
+
+  if (unresolved.length) {
+    throw new UnresolvedFootprintError(unresolved);
+  }
 
   const clusters = detectClusters(components, netClassByName);
   for (const cl of clusters) for (const ref of cl.refs) {
@@ -95,7 +114,7 @@ export function buildDesign(raw: RawNetlist, board: BoardSpec): Design {
     if (c && !c.clusterId) c.clusterId = cl.id;
   }
 
-  return { name: board.name, components, nets, clusters, board, footprints };
+  return { name: board.name, components, nets, clusters, board, footprints, footprintAssumptions };
 }
 
 function netsOfComp(c: Component): Set<string> {

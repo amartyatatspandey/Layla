@@ -185,10 +185,10 @@ function gapBetween(x: Prim, y: Prim): number {
   throw new Error(`unreachable: unhandled primitive pair (${x.kind}, ${y.kind})`);
 }
 
-// Some footprint generators in footprints.ts (e.g. perimeterQuad's 0.5mm
-// pitch pads) are dimensioned so that adjacent same-component, different-net
-// pads sit at *exactly* pitch-minus-pad-size apart, which for the default
-// 0.2mm board.clearance works out to exactly the required clearance — an
+// Some footprint generators in footprints.ts (e.g. fine-pitch QFN pads) are
+// dimensioned so that adjacent same-component, different-net pads sit at
+// *exactly* pitch-minus-pad-size apart, which for the default 0.2mm
+// board.clearance works out to exactly the required clearance — an
 // intentional "meets the minimum, not below it" design, not a violation.
 // Chained rotation/translation floating-point arithmetic (place()/rotate(),
 // used to compute every world-space pad box) lands a hair on either side of

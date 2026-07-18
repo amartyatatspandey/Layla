@@ -3,10 +3,11 @@
 import * as fs from "fs";
 import * as path from "path";
 import {
-  designFromSchematic, improve, synthOnce, defaultRuleset, scoreLayout,
+  improve, synthOnce, defaultRuleset, scoreLayout,
   writeBoard, renderBoardSVG, renderHeatmapSVG, renderLearningCurveSVG,
   renderOscillatorSVG, renderEmiFieldSVG, validateEmiProgressive, verifyLvs, checkClearance,
-  parseSchematic, buildDesign, RNG, Ruleset, BoardSpec, Design, ImproveResult, Optimizer,
+  parseSchematic, RNG, Ruleset, BoardSpec, Design, ImproveResult, Optimizer,
+  compileDesign, isUnresolvedFootprintError,
 } from "./core";
 
 function parseArgs(argv: string[]): { _: string[]; flags: Record<string, string | boolean> } {
@@ -47,11 +48,30 @@ function loadConfig(schPath: string, configFlag?: string): Partial<BoardSpec> & 
   return {};
 }
 
-function designFor(schPath: string, configFlag?: string): Design {
+function designFor(schPath: string, configFlag?: string, outDir?: string): Design {
   const text = fs.readFileSync(schPath, "utf8");
   const cfg = loadConfig(schPath, configFlag);
   const name = cfg.name || path.basename(schPath).replace(/\.kicad_sch$/, "");
-  return designFromSchematic(text, { ...cfg, name });
+  const dir = outDir || path.join(process.cwd(), "build");
+  try {
+    const { design, reportPath } = compileDesign(text, { ...cfg, name }, dir);
+    console.log(C.dim(`  footprint report → ${reportPath}`));
+    return design;
+  } catch (e) {
+    if (isUnresolvedFootprintError(e)) {
+      const rp = e.reportPath || path.join(dir, `${name}.footprint-report.json`);
+      console.error(C.red(`\nUnresolved footprint(s) — aborting before place/route.`));
+      console.error(C.red(`  rejection report → ${rp}`));
+      for (const ent of e.entries) {
+        console.error(C.red(`  • ${ent.ref}  ${ent.package}  ${ent.reason}${ent.detail ? " — " + ent.detail : ""}`));
+        if (ent.nets.length) console.error(C.dim(`      nets: ${ent.nets.join(", ")}`));
+      }
+      process.exit(1);
+    }
+    const rp = path.join(dir, `${name}.footprint-report.json`);
+    console.error(C.red(`Design compile failed — see ${rp}`));
+    throw e;
+  }
 }
 
 function cmdInspect(schPath: string) {
@@ -327,7 +347,7 @@ ${C.bold("Flags:")}
   --feedback "..."                natural-language EE guidance compiled into layout rules
   --config f.json                 board outline / diff-pairs config (else <sch-dir>/layla.json)
 
-${C.dim("Outputs per board: .kicad_pcb, .board.svg, .heatmap.svg, .oscillator.svg, .emi.svg, .curve.svg, .report.json, .rules.json")}
+${C.dim("Outputs per board: .kicad_pcb, .board.svg, .heatmap.svg, .oscillator.svg, .emi.svg, .curve.svg, .report.json, .footprint-report.json, .rules.json")}
 `);
 }
 

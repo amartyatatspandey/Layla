@@ -27,11 +27,12 @@
 import * as fs from "fs";
 import * as path from "path";
 import {
-  designFromSchematic, improve, checkClearance, debugFootprintTemplates,
+  compileDesign, improve, checkClearance, debugFootprintTemplates,
   Design, Layout, Component, DEFAULT_BOARD,
 } from "../core";
 
 const EX_DIR = path.join(__dirname, "..", "..", "examples");
+const OUT = path.join(__dirname, "..", "..", "build", "gate-drc");
 const CELL = 0.5; // must match src/core/route.ts's CELL constant
 
 let failures = 0;
@@ -52,7 +53,7 @@ function loadDesign(name: string, schematic: string): Design {
   const schPath = path.join(EX_DIR, schematic);
   const text = fs.readFileSync(schPath, "utf8");
   const cfg = loadConfig(schPath) as any;
-  return designFromSchematic(text, { ...cfg, name: cfg.name || name });
+  return compileDesign(text, { ...cfg, name: cfg.name || name }, OUT).design;
 }
 
 // ---- Part A: independent cell-occupancy scan over the emitted layout ----
@@ -112,6 +113,7 @@ function buildSyntheticNearShort(): { design: Design; layout: Layout } {
     clusters: [],
     board: { name: "synthetic", ...DEFAULT_BOARD },
     footprints: {},
+    footprintAssumptions: [],
   };
   // Two parallel F.Cu segments, different nets, 0.05mm edge-to-edge apart —
   // well under DEFAULT_BOARD.clearance (0.2mm) and clearly not touching.
@@ -162,6 +164,7 @@ function partC(): void {
     const design: Design = {
       name: "iso", components: [component], nets: [], clusters: [],
       board: { name: "iso", ...DEFAULT_BOARD }, footprints: { C1: fp },
+      footprintAssumptions: [],
     };
     const layout: Layout = { placements: { C1: { ref: "C1", x: 0, y: 0, rot: 0, side: "front" } }, routes: [], vias: [], keepouts: [] };
     const report = checkClearance(design, layout);

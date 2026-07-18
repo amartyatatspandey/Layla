@@ -12,9 +12,10 @@
 // the bug class it exists to catch.
 import * as fs from "fs";
 import * as path from "path";
-import { designFromSchematic, improve, writeBoard, verifyLvs, Design } from "../core";
+import { compileDesign, improve, writeBoard, verifyLvs, Design } from "../core";
 
 const EX_DIR = path.join(__dirname, "..", "..", "examples");
+const OUT = path.join(__dirname, "..", "..", "build", "gate-lvs");
 
 function loadConfig(schPath: string): Record<string, unknown> {
   const cfgPath = path.join(path.dirname(schPath), "layla.json");
@@ -28,7 +29,7 @@ function loadDesign(name: string, schematic: string): Design {
   const schPath = path.join(EX_DIR, schematic);
   const text = fs.readFileSync(schPath, "utf8");
   const cfg = loadConfig(schPath) as any;
-  return designFromSchematic(text, { ...cfg, name: cfg.name || name });
+  return compileDesign(text, { ...cfg, name: cfg.name || name }, OUT).design;
 }
 
 let failures = 0;

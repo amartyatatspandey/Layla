@@ -75,10 +75,14 @@ function uuid(): string {
 }
 
 export function genSchematic(spec: SchSpec): string {
-  // collect unique symbol templates (by symName) with their pin number set
+  // One lib_symbol per part instance. Sharing by symName alone incorrectly
+  // gave every MCU/Conn/Regulator the pin set of the *first* part with that
+  // name (e.g. TQFP-64 MCU pins attached to a QFN-56 instance), which then
+  // hard-fails pad_count_mismatch against the real footprint.
   const templates = new Map<string, string[]>();
+  const libIdFor = (p: PartSpec) => `${p.symName}_${p.ref}`;
   for (const p of spec.parts) {
-    if (!templates.has(p.symName)) templates.set(p.symName, Object.keys(p.pins));
+    templates.set(libIdFor(p), Object.keys(p.pins));
   }
   const libSymbols = node("lib_symbols");
   for (const [symName, pinNums] of templates) libSymbols.items.push(libSymbol(symName, pinNums));
@@ -94,8 +98,9 @@ export function genSchematic(spec: SchSpec): string {
 
   for (const p of spec.parts) {
     const rot = p.at.rot ?? 0;
+    const libId = libIdFor(p);
     const symInst = node("symbol",
-      node("lib_id", str(p.symName)),
+      node("lib_id", str(libId)),
       node("at", atom(p.at.x), atom(p.at.y), atom(rot)),
       node("unit", atom(1)),
       node("in_bom", sym("yes")), node("on_board", sym("yes")),

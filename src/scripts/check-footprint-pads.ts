@@ -7,9 +7,10 @@
 // downstream (scoring, routing, EMI, the emitted .kicad_pcb).
 import * as fs from "fs";
 import * as path from "path";
-import { designFromSchematic } from "../core";
+import { compileDesign } from "../core";
 
 const EX_DIR = path.join(__dirname, "..", "..", "examples");
+const OUT = path.join(__dirname, "..", "..", "build", "gate-pads");
 
 function loadConfig(schPath: string): Record<string, unknown> {
   const cfgPath = path.join(path.dirname(schPath), "layla.json");
@@ -28,7 +29,13 @@ function main(): void {
     const schPath = path.join(EX_DIR, ex.schematic);
     const text = fs.readFileSync(schPath, "utf8");
     const cfg = loadConfig(schPath) as any;
-    const design = designFromSchematic(text, { ...cfg, name: cfg.name || ex.name });
+    let design;
+    try {
+      design = compileDesign(text, { ...cfg, name: cfg.name || ex.name }, OUT).design;
+    } catch (e: any) {
+      console.error(`  COMPILE FAIL  ${ex.name}: ${e?.message || e}`);
+      process.exit(1);
+    }
 
     let boardMismatched = 0;
     for (const c of design.components) {

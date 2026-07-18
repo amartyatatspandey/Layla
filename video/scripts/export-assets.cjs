@@ -18,12 +18,24 @@ function designForExample(name) {
   const ex = idx.find((e) => e.name === name);
   const cfg = JSON.parse(fs.readFileSync(path.join(EX, ex.config), "utf8"));
   const sch = fs.readFileSync(path.join(EX, ex.schematic), "utf8");
-  return core.designFromSchematic(sch, {
-    name,
-    width: cfg.board.width,
-    height: cfg.board.height,
-    diffPairs: cfg.board.diffPairs || [],
-  });
+  const outDir = path.join(ROOT, "build");
+  try {
+    const { design, reportPath } = core.compileDesign(sch, {
+      name,
+      width: cfg.board.width,
+      height: cfg.board.height,
+      diffPairs: cfg.board.diffPairs || [],
+    }, outDir);
+    console.log(`  footprint report → ${reportPath}`);
+    return design;
+  } catch (e) {
+    if (core.isUnresolvedFootprintError && core.isUnresolvedFootprintError(e)) {
+      console.error(`Unresolved footprint(s) — aborting. Report: ${e.reportPath}`);
+      process.exit(1);
+    }
+    console.error(`Design compile failed — see ${path.join(outDir, name + ".footprint-report.json")}`);
+    throw e;
+  }
 }
 
 function exportBoard(name, iterations) {

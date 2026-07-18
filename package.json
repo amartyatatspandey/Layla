@@ -12,7 +12,8 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "gen-examples": "node dist/scripts/gen-examples.js",
-    "check-footprints": "node dist/scripts/check-footprint-pads.js",
+    "check-footprints": "node dist/scripts/check-footprint-resolve.js",
+    "check-footprint-pads": "node dist/scripts/check-footprint-pads.js",
     "check-lvs": "node dist/scripts/check-lvs.js",
     "check-drc": "node dist/scripts/check-drc.js",
     "cli": "node dist/cli.js",
