@@ -3,7 +3,7 @@ import { app, BrowserWindow, ipcMain, dialog } from "electron";
 import * as fs from "fs";
 import * as path from "path";
 import {
-  improve, scoreLayout, DEFAULT_WEIGHTS,
+  improveWithLoadedRuleset, scoreLayout, DEFAULT_WEIGHTS,
   writeBoard, renderBoardSVG, renderHeatmapSVG, renderLearningCurveSVG,
   renderOscillatorSVG, renderEmiFieldSVG, validateEmiProgressive,
   compileDesign, isUnresolvedFootprintError,
@@ -100,11 +100,18 @@ ipcMain.handle("synth:run", async (evt, opts: { example?: string; schPath?: stri
   const sender = evt.sender;
   let design: Design;
   let name: string;
+  let schematicText: string;
   try {
-    if (opts.example) { design = designForExample(opts.example); name = opts.example; }
-    else if (opts.schPath) {
+    if (opts.example) {
+      design = designForExample(opts.example);
+      name = opts.example;
+      const idx = JSON.parse(fs.readFileSync(path.join(EX_DIR, "index.json"), "utf8"));
+      const ex = idx.find((e: any) => e.name === opts.example);
+      schematicText = fs.readFileSync(path.join(EX_DIR, ex.schematic), "utf8");
+    } else if (opts.schPath) {
       name = path.basename(opts.schPath).replace(/\.kicad_sch$/, "");
-      const { design: d } = compileDesign(fs.readFileSync(opts.schPath, "utf8"), { name }, BUILD_DIR);
+      schematicText = fs.readFileSync(opts.schPath, "utf8");
+      const { design: d } = compileDesign(schematicText, { name }, BUILD_DIR);
       design = d;
     } else throw new Error("no input");
   } catch (e: any) {
@@ -124,18 +131,22 @@ ipcMain.handle("synth:run", async (evt, opts: { example?: string; schPath?: stri
     };
   }
 
-  // optionally reuse last run's learned rules (transfer)
-  const ruleset: Ruleset | undefined = (opts.useRules && lastRun) ? lastRun.ruleset : undefined;
+  // optionally reuse last run's learned rules (transfer → auto cold/warm race on mismatch)
+  const loadedRuleset: Ruleset | undefined = (opts.useRules && lastRun) ? lastRun.ruleset : undefined;
 
   const optimizer: Optimizer = opts.optimizer ?? "oscillator";
   const emiOn = opts.emi ?? true;
 
   // Collect render frames during the (synchronous) loop, then animate them.
+  // Cross-board races suppress onIteration (see transferRace.ts).
   const frames: { rec: IterationRecord; boardSVG: string; heatmapSVG: string; oscillatorSVG: string; emiSVG: string; substrateVersion?: number }[] = [];
-  const res = improve(design, {
+  const res = improveWithLoadedRuleset(design, {
+    schematicText,
+    boardLabel: name,
+    loadedRuleset,
     iterations: opts.iterations ?? 7,
     feedback: opts.feedback,
-    ruleset, optimizer, emiValidate: emiOn,
+    optimizer, emiValidate: emiOn,
     onIteration: (rec, best: any) => {
       const emi = best.emi ?? (emiOn ? validateEmiProgressive(design, best.layout) : undefined);
       frames.push({

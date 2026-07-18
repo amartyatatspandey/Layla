@@ -1,0 +1,140 @@
+{
+  "protocol": {
+    "description": "Reuse one buck_imu-evolved substrate (cmdDemo transfer artifact); vary placement seed only on motor_driver.",
+    "seeds": [
+      7,
+      11,
+      23,
+      42,
+      101,
+      256,
+      512,
+      777,
+      1337,
+      2026
+    ],
+    "motor_iterations": 8,
+    "optimizer": "oscillator",
+    "emi": false,
+    "buck_evolve": {
+      "iterations": 7,
+      "seed": 1337,
+      "feedback": "keep the buck hot loop tight and away from the imu",
+      "substrate_version": 2,
+      "buck_best_score": 363.88326125934327
+    },
+    "cmdDemo_reference_pair": {
+      "note": "cmdDemo uses seed=7 and iterations=2 for cold/warm (not 1337/8)",
+      "seed": 7,
+      "iterations": 2,
+      "cold_score": 892.6568187091963,
+      "warm_score": 903.9234039794939
+    },
+    "frozen_substrate": {
+      "version": 2,
+      "attractScale": 1,
+      "clusterAttract": 0.9,
+      "repelScale": 0.45,
+      "repelRadius": 12,
+      "noisySensitiveRepel": 0.8,
+      "driveScale": 1,
+      "inertia": 0.6,
+      "damping": 0.85,
+      "dt": 0.08,
+      "steps": 90,
+      "readout": {
+        "ax": 1.9518863161373885,
+        "bx": 0.7,
+        "ay": 1.701734470920637,
+        "by": 0.7
+      },
+      "condition": {
+        "antennaEdge": 1,
+        "buckTight": 1,
+        "noisyAway": 0.9589298482984304,
+        "decapNear": 1,
+        "usbBalance": 1
+      }
+    }
+  },
+  "rows": [
+    {
+      "seed": 7,
+      "cold_score": 788.0662555875311,
+      "warm_score": 717.278529650184,
+      "delta": -70.78772593734709,
+      "delta_pct": -8.982458700071144
+    },
+    {
+      "seed": 11,
+      "cold_score": 879.3284085908724,
+      "warm_score": 786.5768907558399,
+      "delta": -92.75151783503247,
+      "delta_pct": -10.547995143665059
+    },
+    {
+      "seed": 23,
+      "cold_score": 769.6052197719355,
+      "warm_score": 767.7848712847799,
+      "delta": -1.8203484871555702,
+      "delta_pct": -0.2365301638280223
+    },
+    {
+      "seed": 42,
+      "cold_score": 624.1480799065523,
+      "warm_score": 837.319303497737,
+      "delta": 213.17122359118468,
+      "delta_pct": 34.15395007272966
+    },
+    {
+      "seed": 101,
+      "cold_score": 811.388853112762,
+      "warm_score": 832.2095087788792,
+      "delta": 20.820655666117204,
+      "delta_pct": 2.5660514790463447
+    },
+    {
+      "seed": 256,
+      "cold_score": 794.1870164462961,
+      "warm_score": 830.6309233287394,
+      "delta": 36.44390688244334,
+      "delta_pct": 4.588831865511582
+    },
+    {
+      "seed": 512,
+      "cold_score": 866.5420909719652,
+      "warm_score": 869.733612725774,
+      "delta": 3.1915217538088427,
+      "delta_pct": 0.3683054507172343
+    },
+    {
+      "seed": 777,
+      "cold_score": 800.469186929525,
+      "warm_score": 822.3387121203041,
+      "delta": 21.869525190779086,
+      "delta_pct": 2.732088323682661
+    },
+    {
+      "seed": 1337,
+      "cold_score": 680.4756729664141,
+      "warm_score": 669.200889392698,
+      "delta": -11.27478357371615,
+      "delta_pct": -1.6568973765903654
+    },
+    {
+      "seed": 2026,
+      "cold_score": 656.2855207478913,
+      "warm_score": 682.0963384382599,
+      "delta": 25.810817690368594,
+      "delta_pct": 3.9328641078284106
+    }
+  ],
+  "summary": {
+    "mean_delta_pct": 2.69182099153613,
+    "stddev_delta_pct": 11.573628203969182,
+    "warm_worse_count": 6,
+    "warm_better_count": 4,
+    "warm_equal_count": 0,
+    "n_seeds": 10
+  }
+}

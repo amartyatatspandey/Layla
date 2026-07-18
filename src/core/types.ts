@@ -169,6 +169,20 @@ export interface Ruleset {
   // recursively improves. Typed as `any` here to avoid a cyclic import with
   // oscTypes; the concrete shape is OscSubstrate.
   substrate?: any;
+  /**
+   * Board this ruleset/substrate was evolved against. Content-hash of the
+   * schematic text (not filename) so renames/copies don't break detection.
+   * Absent on legacy *.rules.json → loaders must not guess transfer vs continue.
+   */
+  provenance?: RulesetProvenance;
+}
+
+/** Provenance recorded on every new ruleset write (learn / synth with promotion). */
+export interface RulesetProvenance {
+  /** sha256 hex of the schematic file contents used for evolution. */
+  schematicHash: string;
+  /** Human-readable board label for CLI/report (e.g. design name). */
+  boardLabel: string;
 }
 
 // ---------- iteration / improvement history ----------
@@ -195,4 +209,25 @@ export interface ImproveResult {
    * are anneal-only; this run's learning channel is substrate mutation.
    */
   feedbackScopeNotice?: string;
+  /**
+   * Set when a loaded ruleset triggered (or explicitly skipped) cross-board
+   * cold/warm racing — see transferRace.ts.
+   */
+  transferRace?: TransferRaceReport;
+  /** Legacy ruleset lacked provenance — auto-detection skipped (continuation). */
+  provenanceNotice?: string;
+}
+
+/** Head-to-head cold vs warm transfer race (cross-board only). */
+export interface TransferRaceReport {
+  triggered: boolean;
+  reason: "same_board" | "cross_board" | "legacy_no_provenance" | "no_loaded_ruleset";
+  sourceBoardLabel?: string;
+  targetBoardLabel?: string;
+  coldScore?: number;
+  warmScore?: number;
+  winner?: "cold" | "warm";
+  /** winner.score - loser.score (negative means winner is better / lower). */
+  delta?: number;
+  notice?: string;
 }

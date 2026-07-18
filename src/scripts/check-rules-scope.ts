@@ -126,11 +126,14 @@ function docsFraming(): void {
   assert(/Deterministic vs learned optimizers/.test(oscDoc), "oscillator-architecture.md has dedicated section");
   assert(/architectural \*\*decision\*\*/.test(readme) || /architectural decision/.test(readme.toLowerCase()), "README frames as decision");
   assert(
-    /not one unified rule\+substrate gate/i.test(readme) || /separate channels/i.test(readme),
-    "README rejects unified rule+substrate gate (states separate channels)",
+    /Learning \*?channels\*?:?\*? still differ/i.test(readme) || /learning channels still differ/i.test(readme),
+    "README keeps separate learning channels while unifying evaluation",
   );
-  assert(!/same gate(?!.*separate)/i.test(oscDoc) || /not.*unified rule\+substrate gate/i.test(oscDoc),
-    "osc doc rejects unified rule+substrate reading");
+  assert(
+    /One gate list, separate learning channels/i.test(oscDoc) || /same.*gate list/i.test(oscDoc),
+    "osc doc states unified gate list with separate learning channels",
+  );
+  assert(!/not EMI-gated/i.test(oscDoc), "osc doc no longer says rules are not EMI-gated");
   // Transfer language should not imply K learned rules under oscillator
   assert(!/\+ promoted rules/.test(readme), "README transfer no longer says + promoted rules");
   assert(!/weights \+ evolved/.test(readme), "README rules.json line no longer mentions weights");

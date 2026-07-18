@@ -127,7 +127,8 @@ GPU-friendly vector of scalars. The RSI loop:
 2. **Races a batch** of random initial-phase seeds through the integrator with
    the mutated substrate; decodes, routes, and scores each layout; keeps the
    best.
-3. **Promotes** the mutation only if it passes the gate:
+3. **Promotes** the mutation only if it passes the **shared gate list**
+   applied to every `CandidateLayout` (not just substrate mutations):
    - the **canonical score improves** (same yardstick the optimizer targets), **and**
    - the **EMI field check does not regress** (independent validator, §6), when
      EMI validation is enabled (`--emi` / `emiValidate`).
@@ -142,14 +143,13 @@ the canonical objective without making the field worse.
 > board is carried to a brand-new board as a warm start and measured there. In
 > practice the evolved substrate is a ~24% better optimizer on the new board.
 
-> **Symbolic rule promotion** (hotspot-derived or `--feedback` `push_away` /
-> `cluster_tight` / `anchor_edge`) is the **anneal** optimizer's constraint
-> channel. It is score-gated when those rules are tried under anneal. It is
-> **not** the oscillator's learning channel and is **not** EMI-gated as part of
-> substrate evolution — substrate mutations alone use the EMI non-regression
-> gate when `--emi` is enabled. Do not read "same score gate" as "one unified
-> rule+substrate gate."
-
+> **One gate list, separate learning channels.** Symbolic rule promotion
+> (hotspot-derived or `--feedback` `push_away` / `cluster_tight` / `anchor_edge`)
+> is the **anneal** optimizer's constraint channel; substrate mutation is the
+> **oscillator** learning channel. Those proposal mechanisms stay separate, but
+> every resulting `CandidateLayout` enters the **same** ordered gate list in
+> `optimizerBackend.ts` (score always; EMI when `--emi` is on). There is no
+> carve-out that exempts rule candidates from EMI non-regression.
 ## 6. Separation of concerns: propose vs. validate
 
 Two independent subsystems, deliberately not conflated:
@@ -190,14 +190,16 @@ substitute for certified testing.
                 │  │        └─────────────────────────────────┘  │       │
                 │  │                          │ field risk        │       │
                 │  │                          ▼                   ▼       │
-                │  │             PROMOTION GATE:  score improves            │
+                │  │             PROMOTION GATE LIST (all candidates):       │
+                │  │               score improves                            │
                 │  └──── promote ◀── AND field risk no-regress (if --emi)   │
                 │         if pass                                          │
                 └────────────────────────────────────────────────────────┘
    transfer is verified separately: carry the evolved substrate to a new board.
 ```
 
-`PROPOSE` (oscillators) and `VALIDATE` (damped-wave field pass) are the two
-halves; the gate sits between them and only ratchets the substrate forward when
-score and field risk agree. Cross-board generality is then demonstrated by the
-transfer step (warm-starting a new board with the evolved substrate).
+`PROPOSE` (oscillators / anneal / rules) and `VALIDATE` (damped-wave field pass)
+are separate; the gate list sits between them and ratchets any candidate forward
+only when score (and field risk, when `--emi`) agree. Cross-board generality is
+then demonstrated by the transfer step (warm-starting a new board with the
+evolved substrate).

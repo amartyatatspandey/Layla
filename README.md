@@ -27,21 +27,23 @@ population of coupled oscillators steered by a class-conditioning block
 placement**, not for image generation: the oscillators encode component
 coordinates, and the "image" is a routed, scored PCB layout.
 
-The whole thing is a **ratchet**. Under the default **oscillator** optimizer,
-each iteration explores with fresh phase seeds, then *mutates the substrate*
-and *only promotes the mutation if the canonical score improves and (when
-`--emi` is on) the independent EMI field check does not regress*. Under the
-**anneal** baseline, a score gate promotes symbolic layout rules
-(`push_away` / `cluster_tight` / `anchor_edge`) compiled from `--feedback` or
-hotspots — those rules are search-space constraints for anneal only, not the
-oscillator's learning channel (see
-[Deterministic vs learned optimizers](#deterministic-vs-learned-optimizers)).
-Because promotion is gated on the objective, the best score is **monotonically
-non-increasing** across iterations — the design can only get better or stay flat,
-never regress. And it is not vibes: the objective is a concrete **geometric +
-field-risk score** — ratsnest length, courtyard/DRC violations, buck switch-loop
-area, noisy↔sensitive coupling, antenna keepout, and thermal density. Lower is
-better, and that single number is the thing the loop drives down.
+The whole thing is a **ratchet**. Each iteration explores fresh placements
+through an `OptimizerBackend`, then proposes candidates (substrate mutation
+and/or symbolic rules, depending on the optimizer). **Every** resulting
+`CandidateLayout` is judged by the **same ordered gate list**: promote only if
+the canonical score improves, and — when `--emi` is on — if the independent EMI
+field check does not regress. EMI risk is a property of layout geometry, not of
+which mechanism proposed the candidate; rule-derived and substrate-derived
+layouts face the same checks. Learning *channels* still differ by optimizer
+(anneal → symbolic rules; oscillator → substrate mutation — see
+[Deterministic vs learned optimizers](#deterministic-vs-learned-optimizers)),
+but evaluation does not. Because promotion is gated on the objective, the best
+score is **monotonically non-increasing** across iterations — the design can
+only get better or stay flat, never regress. And it is not vibes: the objective
+is a concrete **geometric + field-risk score** — ratsnest length, courtyard/DRC
+violations, buck switch-loop area, noisy↔sensitive coupling, antenna keepout,
+and thermal density. Lower is better, and that single number is the thing the
+loop drives down.
 
 ---
 
@@ -126,11 +128,12 @@ The pipeline runs in this order, all in TypeScript, all offline:
 9. **Rule / substrate synthesis** (`core/rules.ts`, `core/osc.ts`) — under
    **anneal**, turns hotspots and `--feedback` into symbolic layout rules; under
    **oscillator**, mutates the `OscSubstrate` (symbolic `--feedback` is notice-only).
-10. **Promotion-gated ratchet** (`core/synth.ts`) — re-optimizes with each
-    candidate and keeps it only if the canonical best improves *and*, when
-    `--emi` is on for substrate mutations, the field-risk check does not regress.
-    Anneal rule promotion and oscillator substrate promotion are **separate
-    channels**, not one unified rule+substrate gate.
+10. **Promotion-gated ratchet** (`core/synth.ts`, `core/optimizerBackend.ts`) —
+    re-optimizes with each candidate through one `OptimizerBackend` dispatch,
+    then runs every `CandidateLayout` through the **same gate list** (canonical
+    score always; EMI non-regression when `--emi` is on). Learning channels
+    still differ by optimizer (symbolic rules vs substrate mutation), but
+    **evaluation does not** branch on candidate provenance.
 11. **Board emission + integrity checks** (`core/board.ts`, `core/lvs.ts`,
     `core/drc.ts`) — writes the final `.kicad_pcb`, then independently
     re-derives connectivity from *that emitted text* and diffs it against the
@@ -146,13 +149,11 @@ Success is **always measured against a fixed canonical yardstick**
 `OscSubstrate`; the anneal path is guided by symbolic rules. Neither path
 retunes the objective weights:
 ```ts
-// core/synth.ts — synthOnce()
-// oscillator: race a batch of phase seeds, route + score each one canonically
-const { layouts } = oscillatorPlace(design, ruleset, sub, { batch, seed }); // GUIDED by the substrate
-const score = scoreLayout(design, refined, DEFAULT_WEIGHTS);                  // JUDGED canonically
-// anneal (baseline): symbolic rules constrain the search; same canonical judgement
-const placed = anneal(design, ruleset, rng, seed, …);
-const score  = scoreLayout(design, placed, DEFAULT_WEIGHTS);
+// core/synth.ts — synthOnce() via OptimizerBackend
+const backend = createBackend(optimizer);          // anneal | oscillator
+const { candidate, score } = materializeCandidate(backend, req);
+// GUIDED by backend-owned state (substrate / rules); JUDGED canonically
+scoreLayout(design, candidate.layout, DEFAULT_WEIGHTS);
 ```
 
 Because every layout — under every substrate/ruleset, on every board, under either
@@ -226,8 +227,11 @@ across refinement. It reports:
 a relative, model-based estimate of how much energy a noisy/high-current net is
 likely to dump onto a sensitive victim — **not certified EMC** and not a substitute
 for a real field solver or compliance testing. When `--emi` is on, the validator
-acts as a **promotion gate**: a substrate mutation that lowers the canonical score
-but regresses field risk (beyond a small tolerance) is rejected.
+acts as a **promotion gate on every candidate** (rule-derived or
+substrate-derived): a layout that lowers the canonical score but regresses field
+risk (beyond a small tolerance: `emiRisk(cand) ≤ emiRisk(best) × 1.08`) is
+rejected. The gate list lives in `optimizerBackend.ts` so future checks can be
+appended without touching backend or dispatch code.
 
 ---
 
@@ -269,6 +273,8 @@ npm run check-footprints   # every bundled component's footprint pads match its 
 npm run check-lvs          # all 5 bundled boards are lvs.clean, + a manufactured-regression negative case
 npm run check-drc          # zero shared grid cells (router hard-block) + zero clearance violations,
                             # including every *fixed* footprint template checked in isolation
+npm run check-rules-scope  # weights removed; anneal feedback vs oscillator notice
+npm run check-optimizer-backend  # OptimizerBackend + uniform EMI gate for all candidates
 ```
 
 These are gate tests, not unit tests in a framework — each is a standalone
@@ -495,7 +501,8 @@ measured question on this codebase, not a settled claim.
 | `route.ts` | Grid A\* critical-net router (two-layer); hard-blocks a cell already claimed by a different net. |
 | `score.ts` | Canonical objective + field-risk proxy + hotspot detection. |
 | `rules.ts` | Symbolic rule synthesis from hotspots/`--feedback` (anneal constraints); no weight deltas. |
-| `synth.ts` | Orchestrator: `designFromSchematic`, `synthOnce` (oscillator/anneal), and the `improve` ratchet loop (substrate mutation + EMI gate). |
+| `synth.ts` | Orchestrator: `designFromSchematic`, `synthOnce` via `OptimizerBackend`, and the `improve` ratchet (uniform gate-list evaluation). |
+| `optimizerBackend.ts` | `OptimizerBackend` / `CandidateLayout`, anneal+oscillator adapters, ordered promotion gates (score + optional EMI). |
 | `board.ts` | Emit `.kicad_pcb`. |
 | `lvs.ts` | **LVS-equivalent connectivity check** (`verifyLvs`) — re-parses the emitted board and diffs it against the schematic. |
 | `drc.ts` | **Copper clearance DRC** (`checkClearance`) — minimum-spacing check between different-net pads/traces/vias. |

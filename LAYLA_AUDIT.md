@@ -409,3 +409,52 @@ actual effect.
 | D | `--emi` model fidelity | PARTIAL — honestly documented as non-EMC; zero validation data anywhere; unconverged on the hardest board |
 | E | Robustness on complex boards | FINE — no crashes; RF-awareness limited to placement bias, routing is topology-agnostic |
 | F | `learn --feedback` persistence/effect | BLOCKING — `ruleset.weights` fully dead code; symbolic rules inert under the default `oscillator` optimizer |
+
+---
+
+## Resolution log
+
+Append-only. The findings above remain as written at audit time; closures are
+recorded here without rewriting prior entries.
+
+### 2026-07-18 — Finding A / #4: symbolic rule promotion never EMI-gated
+
+**Original finding:** Under Finding A (Promotion gate / ratchet), symbolic rule
+promotion (`push_away` / `cluster_tight` / `anchor_edge`, from
+`synthesizeFromHotspots`) was never EMI-gated — `--emi` or not. Only
+substrate-mutation candidates ran the
+`emiRisk(cand) ≤ emiRisk(best) × 1.08` non-regression check; rule candidates
+promoted on canonical score alone. (Documented at audit time as intentional;
+see Finding A bullets under “Does a ‘better’ candidate get checked…”, and the
+summary-table note that rule promotion was never cross-checked.)
+
+**Resolution:** Promotion evaluation is now a single ordered gate list on
+`CandidateLayout` (`src/core/optimizerBackend.ts`): `canonical_score` always;
+`emi_non_regression` when `--emi` / `emiValidate` is set. Every promotion
+candidate — rule-derived or substrate-derived — enters the same list via
+`evaluatePromotionGates` in `improve()`; evaluation does not branch on
+candidate provenance. Placement goes through `OptimizerBackend` →
+`CandidateLayout` (anneal / oscillator adapters); learning channels remain
+optimizer-specific, but the gate list does not.
+
+**Note:** This was closed as part of the same refactor that introduced the
+`OptimizerBackend` / `CandidateLayout` interface and unified synth dispatch —
+not a standalone EMI-on-rules patch.
+
+### 2026-07-18 — Milestone 2 / Item 2: transfer-learning regression + cold/warm race
+
+**Original finding / follow-on:** Cross-board substrate transfer appeared to
+regress (or, after clobber fixes, showed seed-dependent search-path harm).
+H1 seed 42: COLD `improve(8)` reached substrate v5 @ ~624 while WARM stayed
+near transferred v3 @ ~837 — warm-start could miss basins a cold start found.
+
+**Resolution:** Cross-board transfer is detected via `Ruleset.provenance`
+(schematic content hash + board label). Hash mismatch auto-triggers two
+independent `improve()` lineages (COLD default substrate vs WARM transferred);
+final `Score.total` decides; winner state kept wholesale. Same-board
+continuation does not race. Legacy rulesets without provenance emit
+`LEGACY_PROVENANCE_NOTICE` and continue without racing.
+
+**Gate evidence:** `npm run check-transfer-race` PASS — same-board no race;
+cross-board race reports both scores; seed 42 selects COLD (624.1) over WARM
+(837.3); legacy notice; content-hash (not filename) detection.

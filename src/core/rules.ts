@@ -18,6 +18,9 @@ export function cloneRuleset(rs: Ruleset): Ruleset {
     rules: rs.rules.map((r) => ({ ...r, params: { ...r.params } })),
     version: rs.version,
     substrate: rs.substrate ? JSON.parse(JSON.stringify(rs.substrate)) : undefined,
+    provenance: rs.provenance
+      ? { schematicHash: rs.provenance.schematicHash, boardLabel: rs.provenance.boardLabel }
+      : undefined,
   };
 }
 

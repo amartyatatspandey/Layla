@@ -8,6 +8,7 @@ import {
   renderOscillatorSVG, renderEmiFieldSVG, validateEmiProgressive, verifyLvs, checkClearance,
   parseSchematic, RNG, Ruleset, BoardSpec, Design, ImproveResult, Optimizer,
   compileDesign, isUnresolvedFootprintError,
+  improveWithLoadedRuleset,
 } from "./core";
 
 function parseArgs(argv: string[]): { _: string[]; flags: Record<string, string | boolean> } {
@@ -157,8 +158,39 @@ function writeOutputs(outDir: string, name: string, design: Design, res: Improve
   if (res.feedbackScopeNotice) {
     report.feedbackScopeNotice = res.feedbackScopeNotice;
   }
+  if (res.provenanceNotice) {
+    report.provenanceNotice = res.provenanceNotice;
+  }
+  if (res.transferRace) {
+    report.transferRace = res.transferRace;
+  }
+  if (res.ruleset.provenance) {
+    report.provenance = res.ruleset.provenance;
+  }
   fs.writeFileSync(path.join(outDir, `${name}.report.json`), JSON.stringify(report, null, 2));
   return report;
+}
+
+function printTransferRace(res: ImproveResult): void {
+  const tr = res.transferRace;
+  if (!tr) return;
+  if (res.provenanceNotice) {
+    console.log(C.yellow(`\n  ${res.provenanceNotice}`));
+  }
+  if (!tr.triggered) {
+    if (tr.reason === "same_board") {
+      console.log(C.dim(`  provenance: same board as ruleset (${tr.sourceBoardLabel}) — continuation, no transfer race`));
+    }
+    return;
+  }
+  console.log(C.bold("\n  transfer race (cross-board provenance mismatch)"));
+  console.log(C.dim(`  source: ${tr.sourceBoardLabel} → target: ${tr.targetBoardLabel}`));
+  console.log(`  cold (default substrate):  ${tr.coldScore!.toFixed(1)}`);
+  console.log(`  warm (transferred):        ${tr.warmScore!.toFixed(1)}`);
+  console.log(
+    `  winner: ${C.cyan(tr.winner!)}  ` +
+    `(Δ ${tr.delta! <= 0 ? C.green(tr.delta!.toFixed(1)) : C.red("+" + tr.delta!.toFixed(1))} vs loser)`,
+  );
 }
 
 function optimizerFlags(flags: Record<string, string | boolean>): { optimizer: Optimizer; emiValidate: boolean } {
@@ -178,37 +210,43 @@ function printImprovement(res: ImproveResult) {
 }
 
 function cmdSynth(schPath: string, flags: Record<string, string | boolean>) {
+  const schText = fs.readFileSync(schPath, "utf8");
   const design = designFor(schPath, flags.config as string);
   const name = design.name;
   console.log(C.bold(`\nlayla synth: ${name}`));
   console.log(`  ${design.components.length} components, ${design.nets.length} nets, ${design.clusters.length} clusters detected`);
 
-  let ruleset: Ruleset | undefined;
+  let loadedRuleset: Ruleset | undefined;
   if (flags.rules && fs.existsSync(String(flags.rules))) {
-    ruleset = JSON.parse(fs.readFileSync(String(flags.rules), "utf8"));
-    // Strip any legacy weights field from older *.rules.json files.
-    if (ruleset && "weights" in ruleset) delete (ruleset as any).weights;
-    const nRules = ruleset!.rules?.length ?? 0;
-    const hasSub = !!ruleset!.substrate;
+    loadedRuleset = JSON.parse(fs.readFileSync(String(flags.rules), "utf8"));
+    if (loadedRuleset && "weights" in loadedRuleset) delete (loadedRuleset as any).weights;
+    const nRules = loadedRuleset!.rules?.length ?? 0;
+    const hasSub = !!loadedRuleset!.substrate;
     console.log(C.dim(
       hasSub && nRules
-        ? `  loaded ruleset from ${flags.rules} (${nRules} symbolic rule(s) for anneal; substrate v${ruleset!.substrate?.version} for oscillator)`
+        ? `  loaded ruleset from ${flags.rules} (${nRules} symbolic rule(s) for anneal; substrate v${loadedRuleset!.substrate?.version} for oscillator)`
         : hasSub
-          ? `  loaded oscillator substrate v${ruleset!.substrate?.version} from ${flags.rules}`
+          ? `  loaded oscillator substrate v${loadedRuleset!.substrate?.version} from ${flags.rules}`
           : `  loaded ${nRules} symbolic rule(s) from ${flags.rules} (anneal constraints)`,
     ));
   }
   const iterations = flags.iterations ? parseInt(String(flags.iterations)) : 8;
   const { optimizer, emiValidate } = optimizerFlags(flags);
   console.log(C.dim(`  optimizer: ${optimizer === "oscillator" ? "coupled-oscillator (Kuramoto) substrate" : "simulated annealing"}${emiValidate ? " + EMI-gated" : ""}`));
-  const res = improve(design, {
-    iterations, ruleset, optimizer, emiValidate,
+  const res = improveWithLoadedRuleset(design, {
+    schematicText: schText,
+    boardLabel: name,
+    loadedRuleset,
+    iterations,
+    optimizer,
+    emiValidate,
     feedback: flags.feedback ? String(flags.feedback) : undefined,
     seed: flags.seed ? parseInt(String(flags.seed)) : 1337,
   });
   if (res.feedbackScopeNotice) {
     console.log(C.yellow(`\n  ${res.feedbackScopeNotice}`));
   }
+  printTransferRace(res);
   printImprovement(res);
   console.log("\n" + scoreTable("final", res.best.score));
   if (res.best.score.hotspots.length) {
@@ -244,41 +282,63 @@ function cmdDemo(flags: Record<string, string | boolean>) {
   console.log(C.bold("\n=== layla demo: self-improving PCB layout ===\n"));
   for (const ex of index) {
     const schPath = path.join(exDir, ex.schematic);
+    const schText = fs.readFileSync(schPath, "utf8");
     const design = designFor(schPath, path.join(exDir, ex.config));
     console.log(C.bold(`\n▶ ${ex.title}  (${ex.name})`));
-    const res = improve(design, { iterations: flags.iterations ? parseInt(String(flags.iterations)) : 7, optimizer: "oscillator", emiValidate: true });
+    const res = improveWithLoadedRuleset(design, {
+      schematicText: schText,
+      boardLabel: ex.name,
+      iterations: flags.iterations ? parseInt(String(flags.iterations)) : 7,
+      optimizer: "oscillator",
+      emiValidate: true,
+    });
     printImprovement(res);
     const report = writeOutputs(outDir, ex.name, design, res);
     console.log(C.green(`  ${report.initialScore} → ${(report.finalScore as number).toFixed(1)}  (improved ${report.improvementPct}%)`) +
       C.cyan(`  [oscillator substrate v${report.substrateVersion}]`));
   }
-  // transfer demo: the RSI improves its own optimizer (the oscillator substrate)
-  // on one board; that improved substrate transfers as a better optimizer to a
-  // brand-new board. Symbolic --feedback on the evolve step is noticed but not
-  // applied under oscillator — only the substrate carries forward.
-  console.log(C.bold("\n▶ transfer: the oscillator substrate evolved on buck_imu, applied to motor_driver"));
-  const buck = designFor(path.join(exDir, "buck_imu/buck_imu.kicad_sch"), path.join(exDir, "buck_imu/layla.json"));
-  const buckRes = improve(buck, { iterations: 7, optimizer: "oscillator", feedback: "keep the buck hot loop tight and away from the imu" });
+  // transfer demo: evolve substrate on buck_imu, then auto-race cold vs warm
+  // on motor_driver via provenance mismatch (no extra flag).
+  console.log(C.bold("\n▶ transfer: the oscillator substrate evolved on buck_imu → motor_driver (auto cold/warm race)"));
+  const buckSchPath = path.join(exDir, "buck_imu/buck_imu.kicad_sch");
+  const motorSchPath = path.join(exDir, "motor_driver/motor_driver.kicad_sch");
+  const buckSch = fs.readFileSync(buckSchPath, "utf8");
+  const motorSch = fs.readFileSync(motorSchPath, "utf8");
+  const buck = designFor(buckSchPath, path.join(exDir, "buck_imu/layla.json"));
+  const buckRes = improveWithLoadedRuleset(buck, {
+    schematicText: buckSch,
+    boardLabel: "buck_imu",
+    iterations: 7,
+    optimizer: "oscillator",
+    feedback: "keep the buck hot loop tight and away from the imu",
+  });
   if (buckRes.feedbackScopeNotice) {
     console.log(C.yellow(`  ${buckRes.feedbackScopeNotice}`));
   }
-  const motor = designFor(path.join(exDir, "motor_driver/motor_driver.kicad_sch"), path.join(exDir, "motor_driver/layla.json"));
-  const budget = 2; // small budget exposes the warm-start advantage
-  const cold = improve(motor, { iterations: budget, optimizer: "oscillator", seed: 7 });
-  // Transfer substrate only (strip symbolic rules so the warm start is honest).
-  const transferred = {
-    rules: [] as typeof buckRes.ruleset.rules,
+  const motor = designFor(motorSchPath, path.join(exDir, "motor_driver/layla.json"));
+  const budget = 2; // small budget for the demo stage
+  // Substrate only — keep buck provenance so motor load detects cross-board transfer.
+  const transferred: Ruleset = {
+    rules: [],
     version: buckRes.ruleset.version,
     substrate: buckRes.ruleset.substrate,
+    provenance: buckRes.ruleset.provenance,
   };
-  const warm = improve(motor, { iterations: budget, optimizer: "oscillator", seed: 7, ruleset: transferred });
+  const raced = improveWithLoadedRuleset(motor, {
+    schematicText: motorSch,
+    boardLabel: "motor_driver",
+    loadedRuleset: transferred,
+    iterations: budget,
+    optimizer: "oscillator",
+    seed: 7,
+  });
   console.log(C.dim(`  (carried: oscillator substrate v${buckRes.ruleset.substrate?.version} — symbolic rules are anneal-only and are not part of this transfer)`));
-  console.log(`  motor_driver from a default substrate   (${budget} iters): ${cold.best.score.total.toFixed(1)}`);
-  console.log(`  motor_driver from the evolved substrate (${budget} iters): ${C.cyan(warm.best.score.total.toFixed(1))}`);
-  const delta = Math.round((1 - warm.best.score.total / cold.best.score.total) * 100);
-  console.log(delta > 0
-    ? C.green(`  the substrate the system improved on one board makes it a ${delta}% better optimizer on a new board — zero new feedback`)
-    : C.dim(`  (transfer delta ${delta}%)`));
+  printTransferRace(raced);
+  if (raced.transferRace?.triggered) {
+    const tr = raced.transferRace;
+    console.log(`  kept ${tr.winner} lineage @ ${raced.best.score.total.toFixed(1)} (substrate v${raced.ruleset.substrate?.version})`);
+  }
+  writeOutputs(outDir, "transfer_motor_driver", motor, raced);
   console.log(C.dim(`\n  all outputs in ${outDir}/`));
 }
 
@@ -300,9 +360,12 @@ function cmdBatch(target: string, flags: Record<string, string | boolean>) {
   const outRoot = flags.out ? String(flags.out) : path.join(process.cwd(), "build");
   const summary: any[] = [];
   for (const f of files) {
+    const schText = fs.readFileSync(f, "utf8");
     const design = designFor(f);
     const { optimizer, emiValidate } = optimizerFlags(flags);
-    const res = improve(design, {
+    const res = improveWithLoadedRuleset(design, {
+      schematicText: schText,
+      boardLabel: design.name,
       iterations: flags.iterations ? parseInt(String(flags.iterations)) : 8,
       seed: flags.seed ? parseInt(String(flags.seed)) : 1337,
       optimizer, emiValidate,
@@ -316,16 +379,26 @@ function cmdBatch(target: string, flags: Record<string, string | boolean>) {
 }
 
 function cmdLearn(schPath: string, flags: Record<string, string | boolean>) {
+  const schText = fs.readFileSync(schPath, "utf8");
   const design = designFor(schPath, flags.config as string);
   const feedback = String(flags.feedback || "");
   if (!feedback) { console.log(C.red("--feedback \"...\" required")); process.exit(1); }
-  let ruleset: Ruleset | undefined;
+  let loadedRuleset: Ruleset | undefined;
   if (flags.rules && fs.existsSync(String(flags.rules))) {
-    ruleset = JSON.parse(fs.readFileSync(String(flags.rules), "utf8"));
-    if (ruleset && "weights" in ruleset) delete (ruleset as any).weights;
+    loadedRuleset = JSON.parse(fs.readFileSync(String(flags.rules), "utf8"));
+    if (loadedRuleset && "weights" in loadedRuleset) delete (loadedRuleset as any).weights;
   }
   // Symbolic --feedback is an anneal search-space channel.
-  const res = improve(design, { iterations: 4, feedback, ruleset, optimizer: "anneal" });
+  const res = improveWithLoadedRuleset(design, {
+    schematicText: schText,
+    boardLabel: design.name,
+    loadedRuleset,
+    iterations: 4,
+    feedback,
+    optimizer: "anneal",
+  });
+  if (res.provenanceNotice) console.log(C.yellow(`  ${res.provenanceNotice}`));
+  printTransferRace(res);
   const outRules = String(flags.out || flags.rules || "rules.json");
   fs.writeFileSync(outRules, JSON.stringify(res.ruleset, null, 2));
   console.log(C.green(`\n  feedback compiled into ${res.ruleset.rules.length} anneal rule(s) → ${outRules}`));
@@ -376,7 +449,7 @@ ${C.bold("Flags:")}
   --emi                           run the progressive voxel damped-wave EMI validation + gate on it
   --iterations N                  self-improvement iterations (default 8)
   --seed N                        deterministic RNG seed (default 1337)
-  --rules f.json                  load/reuse a ruleset (anneal: symbolic rules; oscillator: evolved substrate)
+  --rules f.json                  load/reuse a ruleset; cross-board provenance mismatch auto-races cold vs warm
   --feedback "..."                natural-language EE guidance → symbolic anneal rules (notice-only under oscillator)
   --config f.json                 board outline / diff-pairs config (else <sch-dir>/layla.json)
 
