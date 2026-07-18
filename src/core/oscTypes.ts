@@ -120,7 +120,10 @@ export interface EmiField {
 }
 export interface EmiReport {
   model: "progressive_damped_wave_2p5d";
+  /** Always EMI_SCOPE_CLAIM — relative ranking, not absolute field / compliance. */
+  scope: string;
   levels: EmiLevel[];
+  /** Refinement stability / ranking confidence across cell sizes — not EMC compliance. */
   converged: boolean;
   convergenceDeltaPct: number;
   sensitiveProbeMax: string;  // net name receiving the most field energy

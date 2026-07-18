@@ -142,10 +142,13 @@ directions that improve the canonical objective without making legality or the
 field worse.
 
 > **Transfer is verified separately, not inside the gate.** The promotion gate
-> above runs on the *current* board only. Generality is demonstrated by the
-> transfer step in `npm run demo` (and `--rules`): a substrate evolved on one
-> board is carried to a brand-new board as a warm start and measured there. In
-> practice the evolved substrate is a ~24% better optimizer on the new board.
+> above runs on the *current* board only. Generality is demonstrated by carrying
+> an evolved substrate to a brand-new board (`npm run demo` / `--rules`). On
+> detected cross-board provenance mismatch, layla **races cold-start vs
+> warm-start** and keeps the canonically better full state — transfer is
+> non-harmful by construction (`npm run check-transfer-race`). Do not cite
+> historical "~24% better" transfer numbers; they predate the routing/DRC
+> fixes and the race.
 
 > **One gate list, separate learning channels.** Symbolic rule promotion
 > (hotspot-derived or `--feedback` `push_away` / `cluster_tight` / `anchor_edge`)
@@ -168,9 +171,14 @@ Two independent subsystems, deliberately not conflated:
   per-probe energy.
 
 The validator never proposes placements and the optimizer never scores its own
-field safety. The EMI pass is a **field-risk check used as a promotion gate** —
-it is a relative, model-based estimate, **not an EMC-compliance claim** and not a
-substitute for certified testing.
+field safety. The EMI pass is a **field-risk check used as a promotion gate**.
+Canonical scope (`EMI_SCOPE_CLAIM` / `EmiReport.scope`): flags relative near-field
+coupling risk between two placements for ranking purposes only — a unitless
+comparative estimate, **never** absolute field strength (dB / V/m) or EMC
+compliance. `emiRisk()` compares the finest-level blended scalar; `converged`
+means refinement stability / ranking confidence across cell sizes, not
+compliance, and does **not** alter `emi_non_regression` gate eligibility when
+false. Not a substitute for certified testing.
 
 ## 7. The loop (ASCII)
 
@@ -206,5 +214,5 @@ substitute for certified testing.
 `PROPOSE` (oscillators / anneal / rules) and `VALIDATE` (damped-wave field pass)
 are separate; the gate list sits between them and ratchets any candidate forward
 only when score (and field risk, when `--emi`) agree. Cross-board generality is
-then demonstrated by the transfer step (warm-starting a new board with the
-evolved substrate).
+then demonstrated by the transfer race (cold vs warm on provenance mismatch;
+see `npm run check-transfer-race`).

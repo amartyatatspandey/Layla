@@ -1,9 +1,20 @@
 // Progressive, physics-inspired EMI validation pass.
 //
 // This is an INDEPENDENT validation pass -- NOT the optimizer's objective. It is
-// "physics-inspired progressive validation", NOT certified EMC. The intent is to
-// give a cheap, deterministic, refinement-stable signal about how much energy a
-// noisy/high-current net is likely to dump onto a sensitive victim net.
+// "physics-inspired progressive validation", NOT certified EMC. Scope is locked
+// to relative ranking between layouts (see EMI_SCOPE_CLAIM); it does not claim
+// absolute field strength or compliance.
+//
+// emiRisk() (optimizerBackend) compares the finest-level blended scalar between
+// layouts for the uniform emi_non_regression gate — not dB, V/m, or a compliance
+// threshold. `converged` means refinement stability / ranking confidence across
+// cell sizes, not EMC compliance. Gate eligibility is intentionally unchanged
+// when converged is false (unconverged reports still participate in ranking).
+
+/** Canonical relative-ranking scope — every report surface must echo this. */
+export const EMI_SCOPE_CLAIM =
+  "Flags relative near-field coupling risk between two placements for ranking purposes only; " +
+  "risk is a unitless comparative near-field coupling-risk estimate, never absolute field strength (dB/V/m) or EMC compliance.";
 //
 // MODEL: a 2.5D damped scalar wave (field) solver on a voxel grid. The board is
 // discretized into cols x rows cells with 3 z-layers:
@@ -389,6 +400,7 @@ export function validateEmiProgressive(
 
   return {
     model: "progressive_damped_wave_2p5d",
+    scope: EMI_SCOPE_CLAIM,
     levels: emiLevels,
     converged,
     convergenceDeltaPct,

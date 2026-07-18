@@ -731,15 +731,17 @@ export function renderEmiFieldSVG(design: Design, layout: Layout, emi: EmiReport
   }
   s += `<g opacity="0.7">${ctx}</g>`;
 
-  // ---- title ----
+  // ---- title / relative-ranking scope ----
   s += `<text x="0.5" y="${fmt(-v.margin + 1.6)}" font-size="1.6" fill="#ececed" ` +
-    `font-weight="bold">progressive damped-wave EMI field (physics-inspired validation)</text>`;
+    `font-weight="bold">EMI field — relative near-field ranking (not EMC compliance)</text>`;
 
   // ---- info / legend box (board-mm space, top-right) ----
   const levels = emi.levels || [];
   const boxW = Math.min(v.W - 1, 46);
   const lineH = 1.5;
-  const rowsN = levels.length + 4; // model, header, levels..., verdict line(s)
+  const scopeText = emi.scope || "";
+  const scopeWrap = wrapSvgText(scopeText, 52);
+  const rowsN = levels.length + 4 + scopeWrap.length; // model, scope…, header, levels..., verdict
   const boxX = v.W - boxW - 0.5;
   let by = 1.5;
   let info = "";
@@ -749,6 +751,12 @@ export function renderEmiFieldSVG(design: Design, layout: Layout, emi: EmiReport
   info += `<text x="${fmt(boxX + 0.6)}" y="${fmt(by)}" font-size="1.1" fill="#ececed" ` +
     `font-weight="bold">${esc(emi.model)}</text>`;
   by += lineH;
+  for (const line of scopeWrap) {
+    info += `<text x="${fmt(boxX + 0.6)}" y="${fmt(by)}" font-size="0.75" fill="#86868c">` +
+      `${esc(line)}</text>`;
+    by += lineH * 0.85;
+  }
+  by += lineH * 0.15;
   info += `<text x="${fmt(boxX + 0.6)}" y="${fmt(by)}" font-size="0.9" fill="#86868c">` +
     `cellMm   risk    peak</text>`;
   by += lineH;
@@ -759,7 +767,8 @@ export function renderEmiFieldSVG(design: Design, layout: Layout, emi: EmiReport
   }
   const vcol = emi.converged ? "#c6c6ca" : "#b0832f";
   info += `<text x="${fmt(boxX + 0.6)}" y="${fmt(by)}" font-size="0.9" fill="${vcol}">` +
-    `${emi.converged ? "converged" : "not converged"} (Δ ${esc(fmt(emi.convergenceDeltaPct))}%)</text>`;
+    `${emi.converged ? "converged (ranking confidence)" : "not converged (ranking confidence)"}` +
+    ` (Δ ${esc(fmt(emi.convergenceDeltaPct))}%)</text>`;
   by += lineH;
   info += `<text x="${fmt(boxX + 0.6)}" y="${fmt(by)}" font-size="0.9" fill="#c2655f">` +
     `hottest victim: ${esc(emi.sensitiveProbeMax)}</text>`;
@@ -767,4 +776,23 @@ export function renderEmiFieldSVG(design: Design, layout: Layout, emi: EmiReport
 
   s += `</svg>`;
   return s;
+}
+
+/** Word-wrap for SVG legend lines (board-mm text). */
+function wrapSvgText(text: string, maxChars: number): string[] {
+  if (!text) return [];
+  const words = text.split(/\s+/);
+  const lines: string[] = [];
+  let cur = "";
+  for (const w of words) {
+    const next = cur ? `${cur} ${w}` : w;
+    if (next.length > maxChars && cur) {
+      lines.push(cur);
+      cur = w;
+    } else {
+      cur = next;
+    }
+  }
+  if (cur) lines.push(cur);
+  return lines;
 }

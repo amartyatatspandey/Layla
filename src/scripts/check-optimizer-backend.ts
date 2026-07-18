@@ -7,6 +7,7 @@ import {
   DRC_CLEARANCE_NON_REGRESSION_GATE, EMI_NON_REGRESSION_GATE, emiRisk,
   defaultRuleset, defaultSubstrate, RNG,
   CandidateLayout, Design, Layout, Score, EmiReport,
+  EMI_SCOPE_CLAIM,
 } from "../core";
 
 const ROOT = path.join(__dirname, "..", "..");
@@ -50,6 +51,7 @@ function fakeScore(total: number): Score {
 function fakeEmi(risk: number): EmiReport {
   return {
     model: "progressive_damped_wave_2p5d",
+    scope: EMI_SCOPE_CLAIM,
     levels: [{ cellMm: 1, risk, peak: risk, probeEnergy: risk }],
     converged: true,
     convergenceDeltaPct: 0,

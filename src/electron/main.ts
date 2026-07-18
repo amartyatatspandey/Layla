@@ -8,6 +8,7 @@ import {
   renderOscillatorSVG, renderEmiFieldSVG, validateEmiProgressive,
   compileDesign, isUnresolvedFootprintError,
   Design, Layout, Ruleset, IterationRecord, Score, Optimizer,
+  EMI_SCOPE_CLAIM,
 } from "../core";
 
 const APP_ROOT = path.join(__dirname, "..", "..");
@@ -202,7 +203,15 @@ ipcMain.handle("synth:run", async (evt, opts: { example?: string; schPath?: stri
     oscillatorSVG: (res.best as any).viz ? renderOscillatorSVG((res.best as any).viz) : "",
     emiSVG: renderEmiFieldSVG(design, res.best.layout, finalEmi),
     curveSVG: renderLearningCurveSVG(res.history),
-    emi: { model: finalEmi.model, converged: finalEmi.converged, convergenceDeltaPct: finalEmi.convergenceDeltaPct, levels: finalEmi.levels, sensitiveProbeMax: finalEmi.sensitiveProbeMax, verdict: finalEmi.verdict },
+    emi: {
+      model: finalEmi.model,
+      scope: finalEmi.scope ?? EMI_SCOPE_CLAIM,
+      converged: finalEmi.converged,
+      convergenceDeltaPct: finalEmi.convergenceDeltaPct,
+      levels: finalEmi.levels,
+      sensitiveProbeMax: finalEmi.sensitiveProbeMax,
+      verdict: finalEmi.verdict,
+    },
     rules: res.ruleset.rules.map((r) => ({ name: r.name, kind: r.kind, origin: r.origin, status: r.status })),
     learnedRules: promoted.map((r) => r.name),
     provenanceNotice: res.provenanceNotice,

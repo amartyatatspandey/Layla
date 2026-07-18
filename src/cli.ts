@@ -10,6 +10,7 @@ import {
   compileDesign, isUnresolvedFootprintError,
   improveWithLoadedRuleset,
   summarizeRoutingFromLayout, tierCompletionTarget,
+  EMI_SCOPE_CLAIM,
 } from "./core";
 
 function parseArgs(argv: string[]): { _: string[]; flags: Record<string, string | boolean> } {
@@ -170,7 +171,16 @@ function writeOutputs(outDir: string, name: string, design: Design, res: Improve
       // score.routeCompletion is the canonical in-loop signal; kept equal by construction.
       scoreRouteCompletion: res.best.score.routeCompletion,
     },
-    emi: { model: emi.model, converged: emi.converged, convergenceDeltaPct: emi.convergenceDeltaPct, levels: emi.levels, sensitiveProbeMax: emi.sensitiveProbeMax, verdict: emi.verdict, riskByProbe: emi.riskByProbe },
+    emi: {
+      model: emi.model,
+      scope: emi.scope ?? EMI_SCOPE_CLAIM,
+      converged: emi.converged,
+      convergenceDeltaPct: emi.convergenceDeltaPct,
+      levels: emi.levels,
+      sensitiveProbeMax: emi.sensitiveProbeMax,
+      verdict: emi.verdict,
+      riskByProbe: emi.riskByProbe,
+    },
     lvs,
     drc,
     substrate: res.ruleset.substrate,
@@ -295,7 +305,12 @@ function cmdSynth(schPath: string, flags: Record<string, string | boolean>) {
   }
   console.log(C.green(`\n  improved ${report.improvementPct}%  (${report.initialScore} → ${(report.finalScore as number).toFixed(1)})`));
   if (report.substrateVersion) console.log(C.cyan(`  oscillator substrate evolved to v${report.substrateVersion}`));
-  console.log(C.dim(`  EMI validation: ${(report.emi as any).verdict} (${(report.emi as any).convergenceDeltaPct.toFixed(1)}% Δ across refinement; hottest victim ${(report.emi as any).sensitiveProbeMax || "n/a"})`));
+  console.log(C.dim(
+    `  EMI validation (relative ranking only): ${(report.emi as any).verdict} ` +
+    `(${(report.emi as any).convergenceDeltaPct.toFixed(1)}% Δ across refinement; ` +
+    `hottest victim ${(report.emi as any).sensitiveProbeMax || "n/a"})`,
+  ));
+  console.log(C.dim(`  EMI scope: ${(report.emi as any).scope || EMI_SCOPE_CLAIM}`));
   console.log(C.dim(`  outputs → ${outDir}/${name}.{kicad_pcb,board.svg,heatmap.svg,oscillator.svg,emi.svg,curve.svg,report.json,rules.json}`));
   const learned = report.learnedRules as string[];
   if (learned.length && !res.feedbackScopeNotice) {

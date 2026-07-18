@@ -224,18 +224,18 @@ Known open questions:
   since this interface was just locked and any change to it needs the same
   scrutiny it originally got.
 
-### Item 6 — EMI validator scope definition
-Current state: already honestly documented as non-EMC-fidelity, zero
-validation data anywhere, unconverged on the hardest board. This is a
-refinement of documentation and confidence claims, not an attempt at full
-electromagnetic simulation — that boundary itself was already decided
-earlier in this project and is not being revisited here.
-Known open questions:
-- What concrete confidence statement the validator should be able to make
-  (e.g., "flags relative near-field coupling risk between two placements
-  for ranking purposes, not absolute field strength") — needs to be written
-  down explicitly, likely in README/docs, so its role in the EMI
-  non-regression gate (Part 2) is honestly scoped.
+### Item 6 — EMI validator scope definition — CLOSED
+Confirmed 2026-07-19 via Task 5. Canonical constant `EMI_SCOPE_CLAIM`
+(`core/emi.ts`) is threaded through `EmiReport.scope`, CLI/`report.json`,
+Electron IPC, and EMI SVG title/legend:
+
+> Flags relative near-field coupling risk between two placements for ranking
+> purposes only; risk is a unitless comparative near-field coupling-risk
+> estimate, never absolute field strength (dB/V/m) or EMC compliance.
+
+`emi_non_regression` still compares the finest-level blended scalar uniformly
+across every candidate; `converged` is ranking confidence only and does not
+alter gate eligibility. Gate: `npm run check-emi-scope`.
 
 ### Milestone 3 — merge into one cohesive system
 Not yet scoped in detail. At minimum, by the end of this milestone:

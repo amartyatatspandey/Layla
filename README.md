@@ -222,15 +222,26 @@ it refines through cell sizes `[4, 2, 1] mm` and runs a **convergence check**
 across refinement. It reports:
 
 - per-level `{ cellMm, risk, peak, probeEnergy }`,
-- `converged?` and `convergenceDeltaPct` (stable when the finest-vs-second-finest
-  risk delta is `< 12%`),
+- `converged?` and `convergenceDeltaPct` (**refinement stability / ranking
+  confidence** when the finest-vs-second-finest risk delta is `< 12%` — not EMC
+  compliance),
+- the report `scope` field (always `EMI_SCOPE_CLAIM`),
 - the **hottest victim net** (`sensitiveProbeMax`) and a per-probe risk ranking,
 - a normalized **field heatmap** of `max|u|` over time on the finest grid.
 
-**Be honest about what this is:** it is *physics-inspired progressive validation*,
-a relative, model-based estimate of how much energy a noisy/high-current net is
-likely to dump onto a sensitive victim — **not certified EMC** and not a substitute
-for a real field solver or compliance testing. When `--emi` is on, the validator
+**Be honest about what this is.** Exact approved scope (`EMI_SCOPE_CLAIM` in
+`core/emi.ts`, echoed on every report surface):
+
+> Flags relative near-field coupling risk between two placements for ranking
+> purposes only; risk is a unitless comparative near-field coupling-risk
+> estimate, never absolute field strength (dB/V/m) or EMC compliance.
+
+It is *physics-inspired progressive validation* — **not certified EMC** and not a
+substitute for a real field solver or lab testing. `emiRisk()` (used by the
+promotion gate) compares the **finest-level blended scalar** between layouts,
+not dB/V/m. `converged` / `convergenceDeltaPct` mean **refinement stability /
+ranking confidence** across cell sizes — not compliance; the gate does **not**
+skip or soften when `converged` is false. When `--emi` is on, the validator
 acts as a **promotion gate on every candidate** (rule-derived or
 substrate-derived): a layout that lowers the canonical score but regresses field
 risk (beyond a small tolerance: `emiRisk(cand) ≤ emiRisk(best) × 1.08`) is
@@ -284,6 +295,7 @@ npm run check-inloop-drc   # broad-phase score signal + exact DRC promotion non-
 npm run check-routing-completeness  # tiered route targets + determinism + hard-block + rip-up ownership
 npm run check-rules-scope  # weights removed; anneal feedback vs oscillator notice
 npm run check-optimizer-backend  # OptimizerBackend + uniform gates (score → DRC → EMI)
+npm run check-emi-scope          # EMI relative-ranking scope claim + risk ordering + uniform gate
 ```
 
 These are gate tests, not unit tests in a framework — each is a standalone
@@ -380,9 +392,10 @@ exactly with `layla bench`. These numbers reflect the current pipeline,
 including the routing hard-block and clearance-DRC fixes above; they will
 differ from any numbers you may have seen quoted before those landed (route
 completion changed on some boards once the router could no longer let two
-nets share a cell). And the substrate the RSI loop evolves on one board
-transfers as a better optimizer to a brand-new board with zero new feedback
-(the `demo` transfer stage).
+nets share a cell). Cross-board substrate transfer is **raced** (cold default
+vs warm transferred) when provenance hashes mismatch — see
+[Learning and transfer](#learning-and-transfer); `npm run check-transfer-race`
+is the gate evidence.
 
 ### Examples
 
@@ -467,24 +480,22 @@ This is the headline behavior, exercised by `npm run demo`:
    budget, so the comparison isolates the substrate itself rather than just more
    search time.
 
-**Current, reproducible result of `layla demo` on this codebase: the
-transferred substrate is ~7% *worse*, not better**, on `motor_driver`
-(657.0 cold vs. 702.3 warm — deterministic, same seed, reproduces exactly on
-repeat runs). This is a real regression from an earlier version of this
-project that reported the transfer as a ~24% *improvement* — that number
-predates the routing hard-block and clearance-DRC fixes in
-[`LAYLA_AUDIT.md`](LAYLA_AUDIT.md), and evidently doesn't hold anymore.
-Two most likely explanations, neither yet confirmed: the 2-iteration budget
-is a small, noisy sample to begin with, or the substrate evolved under the
-*old* (leakier) routing model transfers worse now that routing is stricter.
-Don't take the "transfer works" narrative on faith — run `layla demo`
-yourself and read the actual number it prints.
+**Transfer under oscillator is race-guarded, not assumed helpful.** Cross-board
+provenance mismatch auto-triggers two independent `improve()` lineages (COLD
+default substrate vs WARM transferred); final `Score.total` keeps the winner
+wholesale — transfer is strictly non-harmful by construction. Same-board
+continuation does not race. Gate evidence: `npm run check-transfer-race`
+(seed 42 selects COLD 624.1 over WARM 837.3; same-board no race; legacy
+provenance notice; content-hash detection). Don't take an older "~24% better
+optimizer" narrative on faith — that number predates the routing hard-block /
+clearance-DRC fixes and the cold/warm race; run the gate (or `layla demo`) and
+read the scores it prints.
 
 This is still the whole thesis in miniature — the optimizer improves
 *itself*, mutations are kept only when they measurably help on the board
 they were evolved on, and cross-board transfer is judged on the same
-canonical objective — but *whether* transfer currently helps is an open,
-measured question on this codebase, not a settled claim.
+canonical objective with an automatic cold/warm race when provenance says
+the board changed.
 
 ---
 
@@ -502,7 +513,7 @@ measured question on this codebase, not a settled claim.
 | `layoututil.ts` | Shared pad/courtyard world-coordinate helpers. |
 | `oscTypes.ts` | Shared contracts: the promotable `OscSubstrate`, compiled `OscGraph`, viz payload, and `EmiReport`. |
 | `osc.ts` | **Coupled-oscillator (Kuramoto) placement optimizer** — graph compile, batched phase integration, phase→coordinate decode, legalization; `defaultSubstrate` / `mutateSubstrate`. The RSI substrate. |
-| `emi.ts` | **Independent progressive damped-wave 2.5D voxel EMI validator** (`validateEmiProgressive`). |
+| `emi.ts` | **Independent progressive damped-wave 2.5D voxel EMI validator** (`validateEmiProgressive`, `EMI_SCOPE_CLAIM` relative-ranking scope). |
 | `place.ts` | Anchored seeding + simulated-annealing placement (baseline + legalization polish). |
 | `route.ts` | Grid A\* router with tiered coverage + bounded negotiated-congestion rip-up; hard-blocks foreign-net cells. |
 | `score.ts` | Canonical objective + field-risk proxy + hotspot detection. |
@@ -564,10 +575,15 @@ proves out against a measurable objective before keeping them.
 - **A certified EMC tool.** Two field signals exist, neither is compliance. The
   optimizer's objective is a fast **geometric proxy** (switch-loop area, centroid
   coupling, keepout distances, thermal density). The optional `--emi` pass adds an
-  **independent physics-inspired damped-wave voxel solver** that estimates relative
-  near-field coupling and checks refinement convergence — a useful, model-based
-  *cross-check*, but still **not certified EMC** and not a substitute for a real
-  field solver (e.g. openEMS) or lab testing.
+  **independent physics-inspired damped-wave voxel solver** whose sole approved
+  claim is relative ranking: it flags comparative near-field coupling risk
+  between two placements (`EMI_SCOPE_CLAIM` / `report.json.emi.scope`) — a unitless
+  comparative estimate, never absolute field strength (dB / V/m) or EMC
+  compliance. `converged` means refinement stability / ranking confidence across
+  cell sizes, not a compliance verdict. The uniform `emi_non_regression` gate
+  compares the finest-level blended scalar between layouts and does not change
+  eligibility when unconverged. Useful as a model-based *cross-check*, not a
+  substitute for a real field solver (e.g. openEMS) or lab testing.
 - **A full autorouter.** Routing is **tiered**, not universal: small boards
   attempt all demand nets at 100%; medium (`robot_soc`) targets ≥98% with
   reason-tagged shortfalls when placement leaves a low-priority net blocked

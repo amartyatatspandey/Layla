@@ -182,6 +182,11 @@ export interface PromotionGate {
   check: (ctx: GateContext) => GateCheckResult;
 }
 
+/**
+ * Finest-level blended scalar for layout-vs-layout comparison.
+ * Not dB, V/m, or a compliance threshold — see EMI_SCOPE_CLAIM.
+ * Gate eligibility does not depend on `converged` (refinement confidence only).
+ */
 export function emiRisk(e?: EmiReport): number {
   return e && e.levels.length ? e.levels[e.levels.length - 1].risk : 0;
 }
@@ -229,6 +234,8 @@ export const DRC_CLEARANCE_NON_REGRESSION_GATE: PromotionGate = {
 /**
  * Active when --emi is on. Applies to EVERY candidate (rule or substrate).
  * EMI risk is a property of layout geometry, not of proposal mechanism.
+ * Compares finest-level blended scalars (emiRisk), not absolute field units;
+ * does not skip or soften when the report's `converged` flag is false.
  */
 export const EMI_NON_REGRESSION_GATE: PromotionGate = {
   name: "emi_non_regression",

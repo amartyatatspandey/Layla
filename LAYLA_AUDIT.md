@@ -458,3 +458,77 @@ continuation does not race. Legacy rulesets without provenance emit
 **Gate evidence:** `npm run check-transfer-race` PASS — same-board no race;
 cross-board race reports both scores; seed 42 selects COLD (624.1) over WARM
 (837.3); legacy notice; content-hash (not filename) detection.
+
+### 2026-07-19 — Milestone 2 / Item 6: EMI relative-ranking scope
+
+**Finding / open question:** EMI validator was honestly non-EMC but lacked one
+canonical confidence statement shared across report surfaces; `converged` could
+be misread as compliance; transfer docs still carried stale ~24% / open-~7%
+narratives in places.
+
+**Resolution:** Exported `EMI_SCOPE_CLAIM` from `core/emi.ts` and threaded it
+through `EmiReport.scope`, CLI/`report.json`, Electron IPC payload, and EMI SVG
+title/legend. Approved statement:
+
+> Flags relative near-field coupling risk between two placements for ranking
+> purposes only; risk is a unitless comparative near-field coupling-risk
+> estimate, never absolute field strength (dB/V/m) or EMC compliance.
+
+`emiRisk()` / `emi_non_regression` semantics unchanged (finest-level blended
+scalar, 1.08× tolerance, uniform across rule/substrate candidates). `converged`
+documented as refinement stability / ranking confidence — gate eligibility
+intentionally unchanged when false (no debt entry; intentional limitation).
+Transfer docs corrected to cold/warm race + `check-transfer-race` evidence
+where gate support exists; stale ~24% architecture claim removed.
+
+**Gate evidence:** `npm run build`, `npm run check-emi-scope`,
+`npm run check-optimizer-backend` PASS.
+
+### 2026-07-19 — Milestone 3 doc-drift inventory (Item 6 checkpoint)
+
+Append-only inventory at Item 6 close (full Milestone 3 cohesion audit is Task 6).
+Checked against source / gate evidence; corrections applied only where supported:
+
+| Claim / surface | Status at Item 6 close |
+| --- | --- |
+| EMI absolute field / EMC compliance language | Corrected → `EMI_SCOPE_CLAIM` on all EMI surfaces |
+| `emiRisk` as dB/V/m or compliance threshold | Documented as finest-level blended scalar only |
+| `converged` as compliance | Documented as ranking confidence; gate unchanged |
+| Rule candidates exempt from EMI gate | Still absent (uniform gate list); reconfirmed by `check-optimizer-backend` |
+| Architecture "~24% better" transfer | Removed; replaced with cold/warm race + gate evidence |
+| README "~7% worse / open question" transfer | Replaced with race-guarded non-harmful transfer narrative |
+| Router soft-cross / obstacle cost | Already closed earlier; not reopened |
+| `ruleset.weights` | Still absent; not reintroduced |
+| `CandidateLayout` provenance fields | Still `{ layout }` only (Task 4 hierarchy does not add provenance) |
+| In-loop exact DRC as score term | Broad feeds score; exact is promotion gate — docs match |
+| Universal 100% routing on all boards | Tiered expectations already documented; unchanged here |
+| Milestone 3 full matrix / artifact consistency | Deferred to Task 6 |
+
+### 2026-07-18 — Milestone 2 / Item 6: EMI relative-ranking scope
+
+**Original finding:** EMI validator honestly non-EMC but lacked a single
+canonical claim threaded through all report surfaces; confidence language
+around `converged` was easy to over-read as compliance.
+
+**Resolution:** `EMI_SCOPE_CLAIM` exported from `emi.ts` and carried on every
+`EmiReport.scope`, CLI/`report.json`, Electron IPC, and EMI SVG title/legend.
+Approved statement: relative near-field coupling-risk ranking only — unitless
+comparative estimate, never absolute field strength or EMC compliance.
+`emi_non_regression` unchanged (finest-level blended scalar; uniform across
+candidates). `converged` = ranking confidence only; gate eligibility unchanged
+when false.
+
+**Gate evidence:** `npm run check-emi-scope` PASS.
+
+### 2026-07-18 — Milestone 3 doc-drift inventory (pre-integration)
+
+Surfaces checked against Items 3–6 implementation (append-only; corrections
+land in Task 6 cohesion commit if needed):
+
+| Claim area | Status |
+|---|---|
+| Two-tier DRC (broad in score, exact promotion gate) | Documented in README + architecture |
+| Tiered routing (small 100%, medium ≥98% reason-tagged, stress ≥5%) | Documented; placement locality in technical_debt |
+| Oscillator hierarchy + topologyMode / legacy flat notice | Documented via Task 4 |
+| EMI relative-ranking scope | Closed above |
+| Transfer race / unified gates / CandidateLayout provenance-free | Closed earlier; re-verify in Milestone 3 integration gate |
