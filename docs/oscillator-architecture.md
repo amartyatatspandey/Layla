@@ -49,6 +49,26 @@ hotspots   ┼─▶  conditioning block  ─▶  per-node drive[b,i]  (steers, 
            ┘
 ```
 
+### Hierarchical sparse coupling (large boards)
+
+Small boards keep the flat all-pairs noisy↔sensitive graph. Boards with
+`components ≥ 64` or flat-edge count `> 400` switch to **hierarchical sparse
+coupling** (`core/oscHierarchy.ts`):
+
+- Partitions are derived from existing schematic **clusters**; unclustered refs
+  attach by greatest shared-net connectivity (deterministic tie-break;
+  singleton only when disconnected).
+- Intra-partition coupling stays dense; inter-partition noisy/sensitive
+  repulsion is **hub-to-hub** only (one edge per partition pair), plus coarse
+  center-separation — not all-pairs member repulsion.
+- Integration is coarse-to-fine. The episodic `OptimizerBackend` contract is
+  unchanged: hierarchy is internal graph compilation; the backend still returns
+  one provenance-free `CandidateLayout`.
+- `Ruleset.topologyMode` (`flat` | `hierarchical`) is stamped on write and
+  surfaced in `report.json` / Electron IPC. Legacy oscillator artifacts that
+  lack `topologyMode` retain flat coupling for that run with an explicit
+  `topologyModeNotice` (never a silent switch).
+
 ---
 
 ## Deterministic vs learned optimizers (decision)
@@ -147,8 +167,8 @@ field worse.
 > detected cross-board provenance mismatch, layla **races cold-start vs
 > warm-start** and keeps the canonically better full state — transfer is
 > non-harmful by construction (`npm run check-transfer-race`). Do not cite
-> historical "~24% better" transfer numbers; they predate the routing/DRC
-> fixes and the race.
+> historical transfer-improvement percentages from pre-race demos; they predate
+> the routing/DRC fixes and the cold/warm race.
 
 > **One gate list, separate learning channels.** Symbolic rule promotion
 > (hotspot-derived or `--feedback` `push_away` / `cluster_tight` / `anchor_edge`)

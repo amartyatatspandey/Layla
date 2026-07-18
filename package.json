@@ -24,6 +24,7 @@
     "check-routing-completeness": "node dist/scripts/check-routing-completeness.js",
     "check-osc-hierarchy": "node dist/scripts/check-osc-hierarchy.js",
     "check-emi-scope": "node dist/scripts/check-emi-scope.js",
+    "check-milestone3-integration": "node dist/scripts/check-milestone3-integration.js",
     "cli": "node dist/cli.js",
     "start": "electron .",
     "app": "npm run build && npm run gen-examples && electron .",

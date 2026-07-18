@@ -237,18 +237,23 @@ Electron IPC, and EMI SVG title/legend:
 across every candidate; `converged` is ranking confidence only and does not
 alter gate eligibility. Gate: `npm run check-emi-scope`.
 
-### Milestone 3 — merge into one cohesive system
-Not yet scoped in detail. At minimum, by the end of this milestone:
-- Every optimizer backend (anneal, oscillator, and whatever items 3–5
-  produce) operates against the same evaluation contract from Part 2, with
-  items 3–4's new gates folded into the same named gate-list mechanism.
-- `LAYLA_AUDIT.md` and `technical_debt.md` reflect current, accurate state
-  — a final pass to confirm no doc/code drift has crept back in across
-  items 3–6, same posture as the router-obstacle-handling check.
-- A single coherent architecture doc (README + `docs/oscillator-architecture.md`)
-  describes the merged system without any of the "unified gate" language
-  that was previously found to be inaccurate — verify this specifically,
-  since that inaccuracy already happened once.
+### Milestone 3 — merge into one cohesive system — CLOSED
+
+Confirmed 2026-07-19 via Task 6. Every optimizer backend (anneal, oscillator
+with hierarchical sparse coupling) still produces one provenance-free
+`CandidateLayout` judged by the same named gate list:
+`canonical_score` → `drc_clearance_non_regression` → conditional
+`emi_non_regression`. Lightweight bundled-board matrix (buck_imu,
+motor_driver, rf_sensor, robot_soc) captures canonical score, exact DRC count,
+tiered routing completion + reason tags, `topologyMode` hierarchy stats, and
+`EMI_SCOPE_CLAIM` on EMI reports. CLI/`report.json` / Electron surfaces expose
+routing, DRC, hierarchy, and EMI scope consistently. README +
+`docs/oscillator-architecture.md` carry two-tier DRC, tiered routing,
+hierarchy/`topologyMode`, EMI scope, unified gates, and provenance-free
+evaluation claims verified against source.
+
+**Gate:** `npm run check-milestone3-integration` (plus build / backend / EMI /
+in-loop DRC / osc-hierarchy gates recorded in `LAYLA_AUDIT.md`).
 
 Milestone 4 (RL engine) is intentionally not scoped here — separate document
 when this phase closes.

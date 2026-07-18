@@ -504,6 +504,29 @@ Checked against source / gate evidence; corrections applied only where supported
 | Universal 100% routing on all boards | Tiered expectations already documented; unchanged here |
 | Milestone 3 full matrix / artifact consistency | Deferred to Task 6 |
 
+### 2026-07-19 — Milestone 3 cohesion closed
+
+**Resolution:** Single evaluation contract verified end-to-end: backends produce
+provenance-free `CandidateLayout`; promotion uses named gates
+`canonical_score` → `drc_clearance_non_regression` → `emi_non_regression`;
+router/DRC do not branch on proposal provenance. Lightweight bundled-board
+matrix (anneal place+route + oscillator hierarchy + EMI scope) captured
+canonical score, exact DRC counts, routing completion/reason tags, topologyMode,
+and `EMI_SCOPE_CLAIM`. CLI/Electron report fields and README/architecture
+claims audited against implementation.
+
+**Gate evidence (this checkpoint):**
+- `npm run build`
+- `npm run check-optimizer-backend`
+- `npm run check-emi-scope`
+- `npm run check-inloop-drc`
+- `npm run check-osc-hierarchy`
+- `npm run check-milestone3-integration`
+
+Full `check-routing-completeness` / `check-transfer-race` remain standalone
+gates from Items 2–4 (not re-run in this cohesion script due to runtime);
+their prior PASS evidence stands.
+
 ### 2026-07-18 — Milestone 2 / Item 6: EMI relative-ranking scope
 
 **Original finding:** EMI validator honestly non-EMC but lacked a single
@@ -532,3 +555,41 @@ land in Task 6 cohesion commit if needed):
 | Oscillator hierarchy + topologyMode / legacy flat notice | Documented via Task 4 |
 | EMI relative-ranking scope | Closed above |
 | Transfer race / unified gates / CandidateLayout provenance-free | Closed earlier; re-verify in Milestone 3 integration gate |
+
+### 2026-07-19 — Milestone 3 cohesion / integration gate (CLOSED)
+
+**Scope:** Merge Items 3–6 into one cohesive system — unified evaluation contract,
+lightweight bundled-board matrix, report-artifact consistency, and doc claim audit.
+
+**Resolution:**
+- Gate script `npm run check-milestone3-integration` verifies:
+  - Named gate order `canonical_score` → `drc_clearance_non_regression` →
+    `emi_non_regression`; `CandidateLayout` is `{ layout }` only; `route.ts` /
+    `drc.ts` do not branch on proposal provenance.
+  - Lightweight matrix (anneal place + `routeLayout`, oscillator place batch=2)
+    on `buck_imu`, `motor_driver`, `rf_sensor`, `robot_soc`: canonical score,
+    exact DRC violation count, routing completion + `unroutedFailures` tags,
+    hierarchy `topologyMode`, and `EMI_SCOPE_CLAIM` on one EMI pass per board.
+  - Small boards routing 100%; medium ≥98% with `blocked_by_protected_copper`
+    shortfall tags; `robot_soc` hierarchical, small boards flat.
+  - CLI `writeOutputs` / Electron IPC field presence (routing, DRC, hierarchy,
+    EMI scope) + one-shot `improve(1)` with EMI validation on `buck_imu`.
+  - README + `docs/oscillator-architecture.md` string-presence for two-tier DRC,
+    tiered routing, hierarchy/`topologyMode`, EMI scope, unified gates,
+    provenance-free evaluation (hierarchy claims were missing despite Task 4
+    code — added in this cohesion pass).
+- Master plan Milestone 3 marked CLOSED with gate reference.
+- No new `technical_debt.md` entries (no approved deferrals this task).
+
+**Commands run (all PASS):**
+```
+npm run build
+npm run check-optimizer-backend
+npm run check-emi-scope
+npm run check-inloop-drc
+npm run check-osc-hierarchy
+npm run check-milestone3-integration
+```
+Skipped (too slow for this checkpoint; still available): full
+`check-routing-completeness`, `check-transfer-race`. Lightweight matrix includes
+`robot_soc` under ~2 min.

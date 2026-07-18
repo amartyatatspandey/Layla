@@ -102,15 +102,20 @@ The pipeline runs in this order, all in TypeScript, all offline:
 4. **Procedural footprint geometry** (`core/footprints.ts`) — synthesizes real pad
    geometry from footprint ids (no KiCad libraries assumed present), with pad
    numbers that match schematic pins so nets bind correctly in the output board.
-5. **Coupled-oscillator placement** (`core/osc.ts`, default) — compiles the
-   design into a signed-coupling Kuramoto graph (net adjacency ⇒ attraction,
-   cluster cohesion ⇒ extra attraction, noisy↔sensitive ⇒ anti-phase repulsion,
-   decap→IC ⇒ attraction), integrates the phases (optionally inertial /
-   second-order) over a **batch of random initial-phase seeds**, decodes each
-   synchronized phase field to coordinates, snaps edge-anchored parts
-   (USB/connector→left, antenna/RF→right), and runs a light de-overlap
-   legalization. The annealer (`core/place.ts`) is the selectable **baseline**
-   (`--optimizer anneal`) and is also reused as the short legalization polish.
+5. **Coupled-oscillator placement** (`core/osc.ts` / `core/oscHierarchy.ts`,
+   default) — compiles the design into a signed-coupling Kuramoto graph (net
+   adjacency ⇒ attraction, cluster cohesion ⇒ extra attraction, noisy↔sensitive
+   ⇒ anti-phase repulsion, decap→IC ⇒ attraction). On large boards
+   (`components ≥ 64` or flat-edge count `> 400`), coupling is **hierarchical
+   sparse** (cluster-derived partitions, hub-to-hub inter-partition repulsion,
+   coarse-to-fine integration); small boards stay on the flat all-pairs path.
+   `topologyMode` (`flat` | `hierarchical`) is stamped on the ruleset and
+   reported in `report.json`. Integrates phases over a **batch of random
+   initial-phase seeds**, decodes each synchronized phase field to coordinates,
+   snaps edge-anchored parts (USB/connector→left, antenna/RF→right), and runs a
+   light de-overlap legalization. The annealer (`core/place.ts`) is the
+   selectable **baseline** (`--optimizer anneal`) and is also reused as the
+   short legalization polish.
 6. **Grid A\* router with negotiated congestion** (`core/route.ts`) — routes
    demand nets over a coarse two-layer (F.Cu/B.Cu) occupancy grid with via
    costs. **Tiered coverage:** small (`buck_imu`, `motor_driver`, `rf_sensor`)
@@ -295,7 +300,9 @@ npm run check-inloop-drc   # broad-phase score signal + exact DRC promotion non-
 npm run check-routing-completeness  # tiered route targets + determinism + hard-block + rip-up ownership
 npm run check-rules-scope  # weights removed; anneal feedback vs oscillator notice
 npm run check-optimizer-backend  # OptimizerBackend + uniform gates (score → DRC → EMI)
+npm run check-osc-hierarchy      # cluster partitions + hierarchical sparse coupling + legacy flat notice
 npm run check-emi-scope          # EMI relative-ranking scope claim + risk ordering + uniform gate
+npm run check-milestone3-integration  # Milestone 3 cohesion: unified gates + board matrix + docs
 ```
 
 These are gate tests, not unit tests in a framework — each is a standalone
