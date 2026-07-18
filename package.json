@@ -22,6 +22,7 @@
     "check-ruleset-patches": "node dist/scripts/check-ruleset-patches.js",
     "check-transfer-race": "node dist/scripts/check-transfer-race.js",
     "check-routing-completeness": "node dist/scripts/check-routing-completeness.js",
+    "check-osc-hierarchy": "node dist/scripts/check-osc-hierarchy.js",
     "cli": "node dist/cli.js",
     "start": "electron .",
     "app": "npm run build && npm run gen-examples && electron .",

@@ -459,12 +459,24 @@ export function renderOscillatorSVG(viz: OscViz): string {
   // header
   s += `<text x="14" y="22" font-size="14" fill="#ececed" font-weight="bold">` +
     `coupled-oscillator optimizer</text>`;
+  const hier = viz.hierarchy;
+  const modeLine = hier
+    ? ` · ${esc(hier.topologyMode)} · ${esc(String(hier.partitionCount))} partitions · ` +
+      `${esc(String(hier.totalSparseEdges))} sparse edges`
+    : "";
   s += `<text x="14" y="40" font-size="11" fill="#c6c6ca">` +
     `substrate v${esc(String(viz.substrateVersion))} · ` +
-    `${esc(String(viz.batch))} phase seeds raced</text>`;
+    `${esc(String(viz.batch))} phase seeds raced${modeLine}</text>`;
+  if (hier) {
+    s += `<text x="14" y="54" font-size="9" fill="#86868c">` +
+      `comps ${esc(String(hier.componentCount))} · clustered ${esc(String(hier.clusteredCount))} · ` +
+      `attached ${esc(String(hier.attachedCount))} · singleton ${esc(String(hier.singletonCount))} · ` +
+      `bridge ${esc(String(hier.bridgeEdges))} · intra ${esc(String(hier.intraPartitionEdges))} · ` +
+      `inter ${esc(String(hier.interPartitionEdges))}</text>`;
+  }
 
   // ---- region geometry ----
-  const headerH = 52;
+  const headerH = hier ? 64 : 52;
   const leftX = 14, leftY = headerH;
   const leftW = 560, leftH = H - headerH - 14;
   const rightX = leftX + leftW + 14;

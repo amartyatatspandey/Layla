@@ -181,6 +181,7 @@ ipcMain.handle("synth:run", async (evt, opts: { example?: string; schPath?: stri
   const initial = res.history[0]?.rawScore ?? res.best.score.total;
   const finalEmi = (res.best as any).emi ?? validateEmiProgressive(design, res.best.layout);
   const sub = res.ruleset.substrate;
+  const hier = (res.best as any).viz?.hierarchy;
   return {
     name,
     components: design.components.length,
@@ -188,6 +189,9 @@ ipcMain.handle("synth:run", async (evt, opts: { example?: string; schPath?: stri
     clusters: design.clusters.map((c) => ({ kind: c.kind, refs: c.refs })),
     optimizer,
     substrateVersion: sub?.version,
+    topologyMode: res.ruleset.topologyMode,
+    topologyModeNotice: res.topologyModeNotice,
+    oscillatorHierarchy: hier,
     initialScore: initial,
     finalScore: res.best.score.total,
     improvementPct: Math.round((1 - res.best.score.total / initial) * 100),
@@ -201,6 +205,8 @@ ipcMain.handle("synth:run", async (evt, opts: { example?: string; schPath?: stri
     emi: { model: finalEmi.model, converged: finalEmi.converged, convergenceDeltaPct: finalEmi.convergenceDeltaPct, levels: finalEmi.levels, sensitiveProbeMax: finalEmi.sensitiveProbeMax, verdict: finalEmi.verdict },
     rules: res.ruleset.rules.map((r) => ({ name: r.name, kind: r.kind, origin: r.origin, status: r.status })),
     learnedRules: promoted.map((r) => r.name),
+    provenanceNotice: res.provenanceNotice,
+    transferRace: res.transferRace,
   };
 });
 

@@ -23,4 +23,5 @@ export * from "./svg";
 export * from "./schemgen";
 export * from "./oscTypes";
 export * from "./osc";
+export * from "./oscHierarchy";
 export * from "./emi";

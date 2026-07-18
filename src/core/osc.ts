@@ -7,19 +7,28 @@
 // (board intent + hotspots + feedback, via the substrate's `condition` gains)
 // modulates those couplings, the Un-0 "class drive" idea applied to layout.
 //
-// The dynamics are integrated (optionally inertial / second-order) for N steps
-// over a BATCH of random initial phase seeds; each synchronized phase field is
-// decoded to coordinates, lightly legalized (de-overlap), and returned as a
-// candidate Layout. The caller routes + scores the batch and keeps the best.
+// On large boards, coupling is hierarchical/sparse (cluster-derived partitions,
+// hub-to-hub inter-partition repulsion, coarse-to-fine integration). Small
+// boards keep the flat all-pairs graph for parity with legacy substrates.
 //
 // The SUBSTRATE (coupling scales, drives, dt, steps, readout) is the object the
 // outer ratchet loop mutates and promotes — i.e. the optimizer improves itself.
 
-import { Pt, dist, boxOverlap } from "./geometry";
+import { boxOverlap } from "./geometry";
 import { courtyardWorld, clampToBoard } from "./layoututil";
 import { RNG } from "./rng";
 import { Component, Design, Layout, Placement, Role, Ruleset } from "./types";
-import { OscEdge, OscGraph, OscSubstrate, OscViz, OscVizEdge } from "./oscTypes";
+import { OscEdge, OscGraph, OscGraphStats, OscSubstrate, OscViz, OscVizEdge } from "./oscTypes";
+import {
+  compileCoarseGraph,
+  compileFineGraphWithRegionDrives,
+  compileHierarchicalGraph,
+  derivePartitions,
+  flatGraphStats,
+  resolveTopologyMode,
+  separateCenters,
+  TopologyDecision,
+} from "./oscHierarchy";
 
 export function defaultSubstrate(): OscSubstrate {
   return {
@@ -75,8 +84,30 @@ function edgeFor(role: Role): "left" | "right" | "top" | "bottom" | null {
   return null;
 }
 
-// ---- compile the oscillator graph from the design + substrate ----
+/** Options controlling hierarchy selection (legacy flat-compat). */
+export interface OscCompileOpts {
+  /** True when a loaded ruleset lacked topologyMode (legacy artifact). */
+  legacyTopologyAbsent?: boolean;
+}
+
+/**
+ * Resolve topology for a design+ruleset and return the decision (also used by
+ * improve() to stamp topologyMode / emit notices).
+ */
+export function decideOscillatorTopology(
+  design: Design,
+  ruleset: Ruleset,
+  sub: OscSubstrate,
+  opts: OscCompileOpts = {},
+): TopologyDecision {
+  return resolveTopologyMode(design, ruleset, sub, {
+    legacyAbsent: opts.legacyTopologyAbsent,
+  });
+}
+
+// ---- compile the oscillator graph from the design + substrate (flat) ----
 export function compileOscillatorGraph(design: Design, ruleset: Ruleset, sub: OscSubstrate): OscGraph {
+  void ruleset;
   const comps = design.components;
   const idx = new Map<string, number>();
   comps.forEach((c, i) => idx.set(c.ref, i));
@@ -146,7 +177,6 @@ export function compileOscillatorGraph(design: Design, ruleset: Ruleset, sub: Os
   // conditioning drive: edge-anchored components are driven toward their edge.
   const N = comps.length;
   const driveX = new Float64Array(N), driveY = new Float64Array(N), driveStrength = new Float64Array(N);
-  const W = design.board.width, H = design.board.height;
   for (let i = 0; i < N; i++) {
     const e = edgeFor(comps[i].role);
     if (!e) continue;
@@ -159,7 +189,31 @@ export function compileOscillatorGraph(design: Design, ruleset: Ruleset, sub: Os
     else { driveX[i] = 0.5; driveY[i] = 0.92; }
   }
 
-  return { nodes, edges, driveX, driveY, driveStrength };
+  const stats = flatGraphStats(design, edges.length);
+  return { nodes, edges, driveX, driveY, driveStrength, stats };
+}
+
+/**
+ * Compile the active coupling graph for the chosen topology mode.
+ * Flat: all-pairs noisy/sensitive. Hierarchical: sparse hub/bridge graph.
+ */
+export function compileActiveOscillatorGraph(
+  design: Design,
+  ruleset: Ruleset,
+  sub: OscSubstrate,
+  opts: OscCompileOpts = {},
+): { graph: OscGraph; decision: TopologyDecision; stats: OscGraphStats } {
+  const decision = decideOscillatorTopology(design, ruleset, sub, opts);
+  if (decision.mode === "flat") {
+    const graph = compileOscillatorGraph(design, ruleset, sub);
+    const stats = { ...graph.stats!, flatEdgeCount: decision.flatEdgeCount };
+    graph.stats = stats;
+    return { graph, decision, stats };
+  }
+  const hierarchy = derivePartitions(design);
+  const graph = compileHierarchicalGraph(design, hierarchy, sub);
+  graph.stats = { ...graph.stats, flatEdgeCount: decision.flatEdgeCount };
+  return { graph, decision, stats: graph.stats };
 }
 
 function isClass(design: Design, netName: string, cls: string): boolean {
@@ -186,11 +240,15 @@ function targetPhase(coord01: number, a: number, b: number): number {
 // ---- integrate one batch member and decode to a Layout ----
 interface OscRun { layout: Layout; phasesX: Float64Array; phasesY: Float64Array; order: number[]; orderX: number[]; }
 
-function runOne(design: Design, graph: OscGraph, sub: OscSubstrate, rng: RNG, captureOrder: boolean): OscRun {
+function integratePhases(
+  graph: OscGraph,
+  sub: OscSubstrate,
+  rng: RNG,
+  captureOrder: boolean,
+): { px: Float64Array; py: Float64Array; pr: Float64Array; order: number[]; orderX: number[] } {
   const N = graph.nodes.length;
   const px = new Float64Array(N), py = new Float64Array(N), pr = new Float64Array(N);
   const vx = new Float64Array(N), vy = new Float64Array(N);
-  // precompute drive target phases for anchored nodes
   const tx = new Float64Array(N), ty = new Float64Array(N);
   for (let i = 0; i < N; i++) {
     px[i] = rng.range(-Math.PI, Math.PI);
@@ -216,7 +274,6 @@ function runOne(design: Design, graph: OscGraph, sub: OscSubstrate, rng: RNG, ca
       fy[i] += k * sye; fy[j] -= k * sye;
     }
     for (let i = 0; i < N; i++) {
-      // conditioning drive pulls anchored nodes toward their edge phase
       const ds = graph.driveStrength[i];
       if (ds > 0) {
         fx[i] += ds * 2.5 * Math.sin(tx[i] - px[i]);
@@ -234,8 +291,18 @@ function runOne(design: Design, graph: OscGraph, sub: OscSubstrate, rng: RNG, ca
     }
     if (captureOrder) { order.push(kuramotoR(px, py)); orderX.push(kuramotoR1(px)); }
   }
+  return { px, py, pr, order, orderX };
+}
 
-  // decode -> raw placements
+function decodeLayout(
+  design: Design,
+  graph: OscGraph,
+  sub: OscSubstrate,
+  px: Float64Array,
+  py: Float64Array,
+  pr: Float64Array,
+): Layout {
+  const N = graph.nodes.length;
   const W = design.board.width, H = design.board.height;
   const placements: Record<string, Placement> = {};
   for (let i = 0; i < N; i++) {
@@ -245,24 +312,84 @@ function runOne(design: Design, graph: OscGraph, sub: OscSubstrate, rng: RNG, ca
     const rot = [0, 90, 180, 270][Math.floor(((pr[i] + Math.PI) / (2 * Math.PI)) * 4) % 4];
     placements[c.ref] = clampToBoard(design, { ref: c.ref, x, y, rot, side: "front" });
   }
-  // snap edge-anchored components to their nearest board edge (keep along-edge order)
   for (let i = 0; i < N; i++) {
     if (graph.driveStrength[i] <= 0) continue;
+    // Only snap true edge-role anchors (not soft region drives).
     const c = design.components[i];
-    const e = edgeFor(c.role)!;
+    const e = edgeFor(c.role);
+    if (!e) continue;
     const p = placements[c.ref];
     if (e === "left") placements[c.ref] = clampToBoard(design, { ...p, x: 5, rot: 0 });
     else if (e === "right") placements[c.ref] = clampToBoard(design, { ...p, x: W - 5, rot: 180 });
     else if (e === "top") placements[c.ref] = clampToBoard(design, { ...p, y: 5, rot: 270 });
     else placements[c.ref] = clampToBoard(design, { ...p, y: H - 5, rot: 90 });
   }
-  const layout: Layout = { placements, routes: [], vias: [], keepouts: [] };
+  return { placements, routes: [], vias: [], keepouts: [] };
+}
+
+function runOne(design: Design, graph: OscGraph, sub: OscSubstrate, rng: RNG, captureOrder: boolean): OscRun {
+  const { px, py, pr, order, orderX } = integratePhases(graph, sub, rng, captureOrder);
+  const layout = decodeLayout(design, graph, sub, px, py, pr);
   legalize(design, layout, sub);
   return { layout, phasesX: px, phasesY: py, order, orderX };
 }
 
+/**
+ * Coarse-to-fine hierarchical placement:
+ * 1) integrate partition meta-nodes
+ * 2) separate centers with repelRadius/repelScale
+ * 3) integrate partition-local fine graph with region drives
+ * 4) merge → legalize
+ */
+function runHierarchicalOne(
+  design: Design,
+  ruleset: Ruleset,
+  sub: OscSubstrate,
+  rng: RNG,
+  captureOrder: boolean,
+): { run: OscRun; vizGraph: OscGraph; stats: OscGraphStats } {
+  void ruleset;
+  const hierarchy = derivePartitions(design);
+  const coarse = compileCoarseGraph(design, hierarchy, sub);
+  const coarseInt = integratePhases(coarse, sub, rng, false);
+
+  const W = design.board.width, H = design.board.height;
+  const centersMm: { x: number; y: number }[] = [];
+  const centers01: { x: number; y: number }[] = [];
+  for (let i = 0; i < hierarchy.partitions.length; i++) {
+    const x01 = decode01(coarseInt.px[i], sub.readout.ax, sub.readout.bx);
+    const y01 = decode01(coarseInt.py[i], sub.readout.ay, sub.readout.by);
+    centers01.push({ x: x01, y: y01 });
+    centersMm.push({ x: W * x01, y: H * y01 });
+  }
+  // Named consumer for repelScale / repelRadius: inter-partition center spacing.
+  separateCenters(centersMm, W, H, sub.repelRadius, sub.repelScale);
+  for (let i = 0; i < centersMm.length; i++) {
+    centers01[i] = { x: centersMm[i].x / W, y: centersMm[i].y / H };
+  }
+
+  const fine = compileFineGraphWithRegionDrives(design, hierarchy, sub, centers01);
+  const fineInt = integratePhases(fine, sub, rng, captureOrder);
+  const layout = decodeLayout(design, fine, sub, fineInt.px, fineInt.py, fineInt.pr);
+  legalize(design, layout, sub);
+
+  const vizGraph = compileHierarchicalGraph(design, hierarchy, sub);
+  return {
+    run: {
+      layout,
+      phasesX: fineInt.px,
+      phasesY: fineInt.py,
+      order: fineInt.order,
+      orderX: fineInt.orderX,
+    },
+    vizGraph,
+    stats: vizGraph.stats,
+  };
+}
+
 // ---- light de-overlap legalization in coordinate space ----
 function legalize(design: Design, layout: Layout, sub: OscSubstrate): void {
+  void sub; // spacing knobs consumed in hierarchical separateCenters / coarse repel edges
   const refs = design.components.map((c) => c.ref).filter((r) => layout.placements[r]);
   for (let pass = 0; pass < 8; pass++) {
     let moved = false;
@@ -302,15 +429,63 @@ function kuramotoR1(p: Float64Array): number {
 }
 
 // ---- public API: produce a batch of candidate layouts + their viz ----
-export interface OscPlaceResult { layouts: Layout[]; vizes: OscViz[]; }
-export function oscillatorPlace(design: Design, ruleset: Ruleset, sub: OscSubstrate, opts: { batch: number; seed: number }): OscPlaceResult {
-  const graph = compileOscillatorGraph(design, ruleset, sub);
+export interface OscPlaceOpts {
+  batch: number;
+  seed: number;
+  /** True when loaded ruleset lacked topologyMode (legacy flat-compat). */
+  legacyTopologyAbsent?: boolean;
+}
+export interface OscPlaceResult {
+  layouts: Layout[];
+  vizes: OscViz[];
+  topologyDecision: TopologyDecision;
+}
+
+export function oscillatorPlace(
+  design: Design,
+  ruleset: Ruleset,
+  sub: OscSubstrate,
+  opts: OscPlaceOpts,
+): OscPlaceResult {
+  const decision = decideOscillatorTopology(design, ruleset, sub, {
+    legacyTopologyAbsent: opts.legacyTopologyAbsent,
+  });
   const layouts: Layout[] = [];
   const vizes: OscViz[] = [];
-  const vizEdges: OscVizEdge[] = graph.edges.map((e) => ({ i: e.i, j: e.j, k: e.k, kind: e.kind }));
+
+  if (decision.mode === "flat") {
+    const graph = compileOscillatorGraph(design, ruleset, sub);
+    const stats = { ...graph.stats!, flatEdgeCount: decision.flatEdgeCount };
+    const vizEdges: OscVizEdge[] = graph.edges.map((e) => ({ i: e.i, j: e.j, k: e.k, kind: e.kind }));
+    for (let b = 0; b < opts.batch; b++) {
+      const rng = new RNG(opts.seed + b * 7919 + 1);
+      const run = runOne(design, graph, sub, rng, true);
+      layouts.push(run.layout);
+      vizes.push({
+        nodes: design.components.map((c, i) => ({
+          ref: c.ref, role: c.role,
+          thetaX: run.phasesX[i], thetaY: run.phasesY[i],
+          x: run.layout.placements[c.ref]?.x ?? 0, y: run.layout.placements[c.ref]?.y ?? 0,
+        })),
+        edges: vizEdges,
+        order: run.order, orderX: run.orderX, steps: sub.steps,
+        substrateVersion: sub.version, batch: opts.batch,
+        hierarchy: stats,
+      });
+    }
+    return { layouts, vizes, topologyDecision: decision };
+  }
+
+  // Hierarchical coarse-to-fine path.
+  let sharedStats: OscGraphStats | undefined;
+  let vizEdges: OscVizEdge[] = [];
   for (let b = 0; b < opts.batch; b++) {
     const rng = new RNG(opts.seed + b * 7919 + 1);
-    const run = runOne(design, graph, sub, rng, true);
+    const { run, vizGraph, stats } = runHierarchicalOne(design, ruleset, sub, rng, true);
+    if (!sharedStats) {
+      sharedStats = { ...stats, flatEdgeCount: decision.flatEdgeCount };
+      vizEdges = vizGraph.edges.map((e) => ({ i: e.i, j: e.j, k: e.k, kind: e.kind }));
+    }
     layouts.push(run.layout);
     vizes.push({
       nodes: design.components.map((c, i) => ({
@@ -321,7 +496,8 @@ export function oscillatorPlace(design: Design, ruleset: Ruleset, sub: OscSubstr
       edges: vizEdges,
       order: run.order, orderX: run.orderX, steps: sub.steps,
       substrateVersion: sub.version, batch: opts.batch,
+      hierarchy: sharedStats,
     });
   }
-  return { layouts, vizes };
+  return { layouts, vizes, topologyDecision: decision };
 }

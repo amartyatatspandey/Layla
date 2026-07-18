@@ -21,6 +21,7 @@ export function cloneRuleset(rs: Ruleset): Ruleset {
     provenance: rs.provenance
       ? { schematicHash: rs.provenance.schematicHash, boardLabel: rs.provenance.boardLabel }
       : undefined,
+    topologyMode: rs.topologyMode,
   };
 }
 

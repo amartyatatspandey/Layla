@@ -182,6 +182,15 @@ function writeOutputs(outDir: string, name: string, design: Design, res: Improve
   if (res.provenanceNotice) {
     report.provenanceNotice = res.provenanceNotice;
   }
+  if (res.topologyModeNotice) {
+    report.topologyModeNotice = res.topologyModeNotice;
+  }
+  if (res.ruleset.topologyMode) {
+    report.topologyMode = res.ruleset.topologyMode;
+  }
+  if (best.viz?.hierarchy) {
+    report.oscillatorHierarchy = best.viz.hierarchy;
+  }
   if (res.transferRace) {
     report.transferRace = res.transferRace;
   }
@@ -266,6 +275,9 @@ function cmdSynth(schPath: string, flags: Record<string, string | boolean>) {
   });
   if (res.feedbackScopeNotice) {
     console.log(C.yellow(`\n  ${res.feedbackScopeNotice}`));
+  }
+  if (res.topologyModeNotice) {
+    console.log(C.yellow(`\n  ${res.topologyModeNotice}`));
   }
   printTransferRace(res);
   printImprovement(res);

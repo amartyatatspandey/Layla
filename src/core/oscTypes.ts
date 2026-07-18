@@ -4,7 +4,7 @@
 // is the object the RSI loop recursively improves. Layouts are decoded from the
 // synchronized phase field; the substrate is what gets mutated and promoted.
 
-import { Role } from "./types";
+import { Role, TopologyMode } from "./types";
 
 // ---------- the promotable substrate ----------
 // Low-dimensional, GPU-friendly parameterization of the oscillator dynamics.
@@ -14,8 +14,10 @@ export interface OscSubstrate {
   // coupling gains (Kuramoto K is built from the netlist; these scale it)
   attractScale: number;        // net-edge attraction (synchronize -> place together)
   clusterAttract: number;      // extra intra-cluster attraction (buck/usb/...)
-  repelScale: number;          // global anti-phase repulsion (spacing / no collapse)
-  repelRadius: number;         // spatial range (mm) over which repulsion acts
+  /** Inter-partition spacing gain (hierarchical coarse/fine + center separation). */
+  repelScale: number;
+  /** Spatial range (mm) for inter-partition center separation. */
+  repelRadius: number;
   noisySensitiveRepel: number; // anti-coupling between noisy and sensitive nets
   driveScale: number;          // anchor/edge drive gain (omega bias terms)
   // integrator
@@ -34,6 +36,35 @@ export interface OscSubstrate {
     decapNear: number;
     usbBalance: number;
   };
+}
+
+// ---------- hierarchy (cluster-derived partitions) ----------
+export interface OscPartition {
+  id: string;
+  kind: string;
+  refs: string[];
+  source: "cluster" | "attached" | "singleton";
+  clusterId?: string;
+  hubRef: string;
+}
+export interface OscHierarchy {
+  partitions: OscPartition[];
+  clusteredCount: number;
+  attachedCount: number;
+  singletonCount: number;
+}
+export interface OscGraphStats {
+  componentCount: number;
+  partitionCount: number;
+  clusteredCount: number;
+  attachedCount: number;
+  singletonCount: number;
+  bridgeEdges: number;
+  intraPartitionEdges: number;
+  interPartitionEdges: number;
+  totalSparseEdges: number;
+  topologyMode: TopologyMode;
+  flatEdgeCount?: number;
 }
 
 // ---------- compiled oscillator graph ----------
@@ -57,6 +88,7 @@ export interface OscGraph {
   driveX: Float64Array;
   driveY: Float64Array;
   driveStrength: Float64Array;
+  stats?: OscGraphStats;
 }
 
 // ---------- visualization payload (for renderOscillatorSVG) ----------
@@ -70,6 +102,7 @@ export interface OscViz {
   steps: number;
   substrateVersion: number;
   batch: number;           // how many phase seeds were raced
+  hierarchy?: OscGraphStats;
 }
 
 // ---------- EMI validation report ----------

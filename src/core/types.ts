@@ -162,6 +162,9 @@ export interface Rule {
   createdIter: number;
 }
 
+/** Oscillator coupling topology persisted with learned rulesets. */
+export type TopologyMode = "flat" | "hierarchical";
+
 export interface Ruleset {
   rules: Rule[];
   version: number;
@@ -175,6 +178,12 @@ export interface Ruleset {
    * Absent on legacy *.rules.json → loaders must not guess transfer vs continue.
    */
   provenance?: RulesetProvenance;
+  /**
+   * Oscillator coupling topology used when this ruleset was written.
+   * Absent on legacy oscillator artifacts → hierarchy-eligible boards retain
+   * flat-compatibility for that run (explicit notice) and stamp on next write.
+   */
+  topologyMode?: TopologyMode;
 }
 
 /** Provenance recorded on every new ruleset write (learn / synth with promotion). */
@@ -216,6 +225,11 @@ export interface ImproveResult {
   transferRace?: TransferRaceReport;
   /** Legacy ruleset lacked provenance — auto-detection skipped (continuation). */
   provenanceNotice?: string;
+  /**
+   * Legacy oscillator artifact lacked topologyMode on a hierarchy-eligible board
+   * — flat-compatibility retained for this run.
+   */
+  topologyModeNotice?: string;
 }
 
 /** Head-to-head cold vs warm transfer race (cross-board only). */

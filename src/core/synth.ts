@@ -12,7 +12,7 @@ import {
   cloneRuleset, defaultRuleset, promoteRule, synthesizeFromFeedback,
   synthesizeFromHotspots, hasSimilarRule, FEEDBACK_SCOPE_NOTICE,
 } from "./rules";
-import { defaultSubstrate, mutateSubstrate } from "./osc";
+import { defaultSubstrate, mutateSubstrate, decideOscillatorTopology } from "./osc";
 import { validateEmiProgressive } from "./emi";
 import { OscViz, OscSubstrate, EmiReport } from "./oscTypes";
 import { checkClearance, DrcClearanceReport } from "./drc";
@@ -79,6 +79,8 @@ export interface SynthOpts {
   polish?: number;
   /** Optional pre-built backend; otherwise created from optimizer kind. */
   backend?: OptimizerBackend;
+  /** Loaded ruleset lacked topologyMode — flat-compat on hierarchy-eligible boards. */
+  legacyTopologyAbsent?: boolean;
 }
 export interface SynthResult { layout: Layout; score: Score; viz?: OscViz; }
 
@@ -97,6 +99,7 @@ function placeRequest(
     polish: opts.polish,
     annealIters: opts.annealIters,
     startFrom: opts.startFrom,
+    legacyTopologyAbsent: opts.legacyTopologyAbsent,
   };
 }
 
@@ -147,11 +150,15 @@ export function improve(design: Design, opts: ImproveOpts = {}): ImproveResult {
   const emiValidator = opts.emiValidator ?? validateEmiProgressive;
   const backend = createBackend(optimizer);
 
+  // Legacy oscillator artifact: loaded ruleset present but topologyMode absent.
+  const legacyTopologyAbsent = opts.ruleset != null && opts.ruleset.topologyMode === undefined;
+
   let ruleset = opts.ruleset ? cloneRuleset(opts.ruleset) : defaultRuleset();
   if (optimizer === "oscillator" && !ruleset.substrate) ruleset.substrate = defaultSubstrate();
   if (optimizer === "anneal") ruleset.substrate = undefined;
 
   let feedbackScopeNotice: string | undefined;
+  let topologyModeNotice: string | undefined;
   if (opts.feedback) {
     if (optimizer === "oscillator") {
       feedbackScopeNotice = FEEDBACK_SCOPE_NOTICE;
@@ -162,6 +169,13 @@ export function improve(design: Design, opts: ImproveOpts = {}): ImproveResult {
     }
   }
 
+  if (optimizer === "oscillator" && ruleset.substrate) {
+    const decision = decideOscillatorTopology(design, ruleset, ruleset.substrate as OscSubstrate, {
+      legacyTopologyAbsent,
+    });
+    if (decision.notice) topologyModeNotice = decision.notice;
+  }
+
   const synthOptsFor = (seed: number, extraEffort: number): SynthOpts => ({
     optimizer,
     backend,
@@ -169,6 +183,7 @@ export function improve(design: Design, opts: ImproveOpts = {}): ImproveResult {
     seed,
     polish: opts.polish ?? (optimizer === "oscillator" ? 120 : 0),
     annealIters: 600 + extraEffort,
+    legacyTopologyAbsent,
   });
 
   const history: IterationRecord[] = [];
@@ -274,7 +289,17 @@ export function improve(design: Design, opts: ImproveOpts = {}): ImproveResult {
     opts.onIteration?.(rec, best);
   }
 
-  return { design, best: best!, history, ruleset, feedbackScopeNotice };
+  // Stamp topologyMode on every oscillator ruleset write (including legacy flat-compat).
+  if (optimizer === "oscillator" && ruleset.substrate) {
+    const decision = decideOscillatorTopology(design, {
+      ...ruleset,
+      // Decide using the *original* legacy flag, not a mid-run stamp.
+      topologyMode: opts.ruleset?.topologyMode,
+    }, ruleset.substrate as OscSubstrate, { legacyTopologyAbsent });
+    ruleset.topologyMode = decision.mode;
+  }
+
+  return { design, best: best!, history, ruleset, feedbackScopeNotice, topologyModeNotice };
 }
 
 function round2(n: number): number { return Math.round(n * 100) / 100; }

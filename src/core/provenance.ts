@@ -11,6 +11,13 @@ export const LEGACY_PROVENANCE_NOTICE =
   "cross-board transfer cannot run; treating as continuation (no cold/warm race). " +
   "Re-run `layla learn` or `layla synth` to populate provenance for future auto-detection.";
 
+/**
+ * Legacy oscillator artifact (no topologyMode) on a hierarchy-eligible board:
+ * retain flat coupling for this run; next ruleset write stamps topologyMode.
+ * Canonical definition lives in oscHierarchy.ts (avoid duplicating the string).
+ */
+export { LEGACY_FLAT_TOPOLOGY_NOTICE } from "./oscHierarchy";
+
 /** Stable content hash of schematic text (sha256 hex). */
 export function schematicContentHash(schematicText: string): string {
   return crypto.createHash("sha256").update(schematicText, "utf8").digest("hex");

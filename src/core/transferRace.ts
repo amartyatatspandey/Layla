@@ -112,6 +112,7 @@ export function improveWithLoadedRuleset(
   else if (warm.feedbackScopeNotice && winner === "warm") {
     out.feedbackScopeNotice = warm.feedbackScopeNotice;
   }
+  if (winRes.topologyModeNotice) out.topologyModeNotice = winRes.topologyModeNotice;
   out.transferRace = race;
   return out;
 }
