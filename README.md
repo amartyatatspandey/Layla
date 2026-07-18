@@ -11,8 +11,8 @@ The core optimizer is a **coupled-oscillator (Kuramoto) substrate**. The netlist
 is compiled into a network of phase oscillators — components are nodes; shared
 nets become **attractive (synchronizing)** couplings (synchronized phase ⇒ nearby
 placement); noisy↔sensitive net pairs become **anti-phase (repelling)** couplings
-(separation). A **conditioning block** (board intent + thermal hotspots +
-feedback) modulates those couplings. Many random initial-phase seeds are raced;
+(separation). A **conditioning block** (board intent + thermal hotspots)
+modulates those couplings. Many random initial-phase seeds are raced;
 each synchronized phase field is decoded to coordinates via
 `coord = boardSize · sigmoid(a·sinθ + b·cosθ)`, then a light de-overlap
 legalization runs. This substrate is **what the RSI loop recursively improves**.
@@ -27,16 +27,41 @@ population of coupled oscillators steered by a class-conditioning block
 placement**, not for image generation: the oscillators encode component
 coordinates, and the "image" is a routed, scored PCB layout.
 
-The whole thing is a **ratchet**. Each iteration the loop explores with fresh
-phase seeds, then *mutates the substrate* and *only promotes the mutation if the
-canonical score improves and the independent EMI field check does not regress*;
-it also synthesizes symbolic layout rules from hotspots under the same score gate.
+The whole thing is a **ratchet**. Under the default **oscillator** optimizer,
+each iteration explores with fresh phase seeds, then *mutates the substrate*
+and *only promotes the mutation if the canonical score improves and (when
+`--emi` is on) the independent EMI field check does not regress*. Under the
+**anneal** baseline, a score gate promotes symbolic layout rules
+(`push_away` / `cluster_tight` / `anchor_edge`) compiled from `--feedback` or
+hotspots — those rules are search-space constraints for anneal only, not the
+oscillator's learning channel (see
+[Deterministic vs learned optimizers](#deterministic-vs-learned-optimizers)).
 Because promotion is gated on the objective, the best score is **monotonically
 non-increasing** across iterations — the design can only get better or stay flat,
 never regress. And it is not vibes: the objective is a concrete **geometric +
 field-risk score** — ratsnest length, courtyard/DRC violations, buck switch-loop
 area, noisy↔sensitive coupling, antenna keepout, and thermal density. Lower is
 better, and that single number is the thing the loop drives down.
+
+---
+
+## Deterministic vs learned optimizers
+
+This is an architectural **decision**, not a temporary limitation:
+
+| Optimizer | Learning / guidance channel |
+| --- | --- |
+| **Deterministic (`anneal`)** | Explicit human-guided **symbolic rules** compiled from `--feedback` (and hotspot synthesis): `push_away`, `cluster_tight`, `anchor_edge` as search-space constraints. |
+| **Learned (`oscillator`; future GNN/RL)** | Optimization driven by **learned representations** — today, `OscSubstrate` mutation; later, learned policies — **not** by injecting symbolic rule constraints into the placement graph. |
+
+When `--feedback` is passed with `--optimizer oscillator`, the run **continues
+normally** but prints (and records in `report.json`) an explicit notice that
+symbolic rules apply to anneal only and that this run's learning channel is
+substrate mutation. Transfer demos carry the **evolved substrate**, not a count
+of "learned rules," as what makes the oscillator better on a new board.
+
+Scoring always uses the fixed `DEFAULT_WEIGHTS` yardstick. There is no
+`ruleset.weights` / weight-delta mechanism.
 
 ---
 
@@ -98,12 +123,14 @@ The pipeline runs in this order, all in TypeScript, all offline:
 8. **Independent EMI validation** (`core/emi.ts`, optional via `--emi`) — a
    progressive 2.5D damped-wave voxel solver estimates near-field coupling risk
    *independently* of the optimizer's objective (see [EMI section](#emi-independent-field-validation)).
-9. **Rule + substrate synthesis** (`core/rules.ts`, `core/osc.ts`) — turns
-   hotspots (and any human feedback text) into candidate layout rules, and
-   mutates the oscillator substrate itself.
+9. **Rule / substrate synthesis** (`core/rules.ts`, `core/osc.ts`) — under
+   **anneal**, turns hotspots and `--feedback` into symbolic layout rules; under
+   **oscillator**, mutates the `OscSubstrate` (symbolic `--feedback` is notice-only).
 10. **Promotion-gated ratchet** (`core/synth.ts`) — re-optimizes with each
-    candidate (rule or mutated substrate) and keeps it only if the canonical best
-    improves *and*, when `--emi` is on, the field-risk check does not regress.
+    candidate and keeps it only if the canonical best improves *and*, when
+    `--emi` is on for substrate mutations, the field-risk check does not regress.
+    Anneal rule promotion and oscillator substrate promotion are **separate
+    channels**, not one unified rule+substrate gate.
 11. **Board emission + integrity checks** (`core/board.ts`, `core/lvs.ts`,
     `core/drc.ts`) — writes the final `.kicad_pcb`, then independently
     re-derives connectivity from *that emitted text* and diffs it against the
@@ -114,27 +141,26 @@ The pipeline runs in this order, all in TypeScript, all offline:
 
 ### Why scores stay comparable (and why transfer is valid)
 
-A ruleset carries **weight deltas** (and, for the oscillator path, the
-`OscSubstrate`) that bias the search. But success is **always measured against a
-fixed canonical yardstick** (`DEFAULT_WEIGHTS`), not the ruleset's own weights —
-and this holds for *both* optimizers:
-
+Success is **always measured against a fixed canonical yardstick**
+(`DEFAULT_WEIGHTS`). The oscillator path is guided by the evolved
+`OscSubstrate`; the anneal path is guided by symbolic rules. Neither path
+retunes the objective weights:
 ```ts
 // core/synth.ts — synthOnce()
 // oscillator: race a batch of phase seeds, route + score each one canonically
 const { layouts } = oscillatorPlace(design, ruleset, sub, { batch, seed }); // GUIDED by the substrate
 const score = scoreLayout(design, refined, DEFAULT_WEIGHTS);                  // JUDGED canonically
-// anneal (baseline): same canonical judgement
+// anneal (baseline): symbolic rules constrain the search; same canonical judgement
 const placed = anneal(design, ruleset, rng, seed, …);
 const score  = scoreLayout(design, placed, DEFAULT_WEIGHTS);
 ```
 
-Because every layout — under every ruleset/substrate, on every board, under either
+Because every layout — under every substrate/ruleset, on every board, under either
 optimizer — is graded on the same objective, scores are directly comparable across
 iterations, across optimizers, and across boards. That is exactly what makes the
 ratchet sound, what lets the oscillator and the annealer be benchmarked
-head-to-head (`bench`), and what makes a rule (or evolved substrate) learned on one
-board **transferable** to another.
+head-to-head (`bench`), and what makes an **evolved substrate** (or anneal rule
+set) learned on one board transferable to another under the matching optimizer.
 
 ### The score (what "better" means)
 
@@ -386,7 +412,7 @@ node dist/cli.js batch examples --out build
 | `<name>.emi.svg` | Progressive damped-wave EMI field heatmap (finest level) with the hottest victim net. |
 | `<name>.curve.svg` | Learning curve (score per iteration). |
 | `<name>.report.json` | Scores, term breakdown, iteration history, learned rules, evolved substrate, EMI summary, improvement %, plus `lvs` (connectivity check) and `drc` (clearance check) — see [Verification](#verification-lvs--clearance-drc). |
-| `<name>.rules.json` | The ruleset (promoted rules + weights + evolved `OscSubstrate`) for reuse / transfer. |
+| `<name>.rules.json` | The ruleset: symbolic anneal rules (if any) + evolved `OscSubstrate` (if any). No weight-delta field. |
 
 `batch` additionally writes `batch-summary.json`.
 
@@ -415,15 +441,16 @@ trusting route-completion numbers on a board of that size.
 
 This is the headline behavior, exercised by `npm run demo`:
 
-1. **Evolve** the optimizer on `buck_imu` (with the feedback *"keep the buck hot
-   loop tight and away from the imu"*). The RSI loop mutates the oscillator
-   **substrate** and promotes only the mutations (and symbolic rules) that lower
-   the canonical score — the substrate that comes out is a *better optimizer*, not
-   just a better board.
-2. **Transfer** that evolved substrate (+ promoted rules), unchanged, to the
+1. **Evolve** the optimizer on `buck_imu`. Under oscillator, the RSI mutates the
+   **substrate** and promotes only mutations that lower the canonical score — the
+   substrate that comes out is a *better optimizer*, not just a better board.
+   `--feedback` on this step is notice-only for oscillator (symbolic rules are
+   anneal-only).
+2. **Transfer** that evolved **substrate**, unchanged, to the
    brand-new `motor_driver` board — **with zero new feedback**. The motor board is
    optimized once from a **default** substrate and once from the **evolved**
-   substrate, same seed and same small iteration budget.
+   substrate, same seed and same small iteration budget. Symbolic rules are not
+   part of what transfers under oscillator.
 3. **Measure** the canonical score in both cases, under the same small (2-iteration)
    budget, so the comparison isolates the substrate itself rather than just more
    search time.
@@ -467,7 +494,7 @@ measured question on this codebase, not a settled claim.
 | `place.ts` | Anchored seeding + simulated-annealing placement (baseline + legalization polish). |
 | `route.ts` | Grid A\* critical-net router (two-layer); hard-blocks a cell already claimed by a different net. |
 | `score.ts` | Canonical objective + field-risk proxy + hotspot detection. |
-| `rules.ts` | Rule synthesis from hotspots/feedback; promotion + weight deltas. |
+| `rules.ts` | Symbolic rule synthesis from hotspots/`--feedback` (anneal constraints); no weight deltas. |
 | `synth.ts` | Orchestrator: `designFromSchematic`, `synthOnce` (oscillator/anneal), and the `improve` ratchet loop (substrate mutation + EMI gate). |
 | `board.ts` | Emit `.kicad_pcb`. |
 | `lvs.ts` | **LVS-equivalent connectivity check** (`verifyLvs`) — re-parses the emitted board and diffs it against the schematic. |

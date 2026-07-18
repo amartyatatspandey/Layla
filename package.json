@@ -16,6 +16,7 @@
     "check-footprint-pads": "node dist/scripts/check-footprint-pads.js",
     "check-lvs": "node dist/scripts/check-lvs.js",
     "check-drc": "node dist/scripts/check-drc.js",
+    "check-rules-scope": "node dist/scripts/check-rules-scope.js",
     "cli": "node dist/cli.js",
     "start": "electron .",
     "app": "npm run build && npm run gen-examples && electron .",

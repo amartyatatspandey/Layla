@@ -9,7 +9,7 @@ import { scoreLayout, DEFAULT_WEIGHTS } from "./score";
 import { RNG } from "./rng";
 import {
   cloneRuleset, defaultRuleset, promoteRule, synthesizeFromFeedback,
-  synthesizeFromHotspots, hasSimilarRule,
+  synthesizeFromHotspots, hasSimilarRule, FEEDBACK_SCOPE_NOTICE,
 } from "./rules";
 import { oscillatorPlace, defaultSubstrate, mutateSubstrate } from "./osc";
 import { validateEmiProgressive } from "./emi";
@@ -115,12 +115,13 @@ export interface ImproveOpts {
 }
 export interface BestState { layout: Layout; score: Score; viz?: OscViz; emi?: EmiReport; }
 
-// The recursively self-improving loop. The optimizer is the coupled-oscillator
-// SUBSTRATE; each iteration it (a) explores with fresh phase seeds, (b) mutates
-// its own substrate and promotes the mutation only if the canonical score
-// improves AND the independent EMI field check does not regress, and (c) also
-// synthesizes symbolic layout rules from hotspots under the same gate.
-// Best score is therefore monotonically non-increasing (a ratchet).
+// The recursively self-improving loop.
+//
+// Deterministic optimizer (anneal): symbolic rules from --feedback / hotspots
+// are search-space constraints; promotion is score-gated.
+// Learned optimizer (oscillator): the RSI loop mutates the OscSubstrate and
+// promotes mutations when score (and optional EMI) improve. Symbolic rules are
+// not the learning channel here — see FEEDBACK_SCOPE_NOTICE.
 export function improve(design: Design, opts: ImproveOpts = {}): ImproveResult {
   const iterations = opts.iterations ?? 8;
   const baseSeed = opts.seed ?? 1337;
@@ -131,9 +132,15 @@ export function improve(design: Design, opts: ImproveOpts = {}): ImproveResult {
   if (optimizer === "oscillator" && !ruleset.substrate) ruleset.substrate = defaultSubstrate();
   if (optimizer === "anneal") ruleset.substrate = undefined;
 
+  let feedbackScopeNotice: string | undefined;
   if (opts.feedback) {
-    for (const r of synthesizeFromFeedback(opts.feedback, design, 0)) {
-      if (!hasSimilarRule(ruleset, r)) ruleset = promoteRule(ruleset, r);
+    if (optimizer === "oscillator") {
+      // Do not inject symbolic feedback rules into a learned-optimizer run.
+      feedbackScopeNotice = FEEDBACK_SCOPE_NOTICE;
+    } else {
+      for (const r of synthesizeFromFeedback(opts.feedback, design, 0)) {
+        if (!hasSimilarRule(ruleset, r)) ruleset = promoteRule(ruleset, r);
+      }
     }
   }
 
@@ -173,7 +180,9 @@ export function improve(design: Design, opts: ImproveOpts = {}): ImproveResult {
       }
     }
 
-    // (c) synthesize symbolic layout rules from hotspots, same promotion gate.
+    // (c) Symbolic layout rules from hotspots — anneal search-space constraints.
+    // Under oscillator these are still score-gated into the ruleset for
+    // persistence/transfer to anneal runs, but they do not steer the substrate.
     const candidates = synthesizeFromHotspots(best.score.hotspots, design, iter);
     for (const cand of candidates) {
       if (hasSimilarRule(ruleset, cand)) continue;
@@ -203,7 +212,7 @@ export function improve(design: Design, opts: ImproveOpts = {}): ImproveResult {
     opts.onIteration?.(rec, best);
   }
 
-  return { design, best: best!, history, ruleset };
+  return { design, best: best!, history, ruleset, feedbackScopeNotice };
 }
 
 function ruleset0(opts: ImproveOpts): Ruleset { return opts.ruleset!; }

@@ -22,15 +22,16 @@ Each component is given a small bank of **phase oscillators** — `θx`, `θy`
 - **Net edges** — every shared net becomes **positive (attractive)** coupling
   between its members' oscillators: synchronize ⇒ place near. High-current /
   noisy nets get a heavier weight.
-- **Rule / constraint edges** — learned or default rules add coupling:
-  `cluster_tight` ⇒ extra intra-cluster attraction; `push_away` and the
-  built-in *noisy ↔ sensitive* relation ⇒ **negative (anti-phase)** coupling:
-  repel ⇒ keep apart.
+- **Rule / constraint edges** — built-in topology (cluster cohesion, noisy↔sensitive
+  repulsion) shapes `K`. Symbolic anneal rules (`push_away` / `cluster_tight` /
+  `anchor_edge` from `--feedback`) are **not** injected into this graph; they are
+  constraints for the deterministic anneal optimizer only.
 - **Condition oscillators** — the conditioning block (board archetype +
-  thermal hotspots + human feedback) does **not** add edges; it injects a
+  thermal hotspots) does **not** add edges; it injects a
   per-node **drive** (`driveX`, `driveY`, `driveStrength`, scaled by the
   `condition.*` gains) that biases anchored nodes toward target board positions
-  (antenna→edge, USB/connector→edge, …).
+  (antenna→edge, USB/connector→edge, …). Human `--feedback` text under oscillator
+  is a visible scope notice, not a drive injection.
 
 The signed coupling matrix `K` is therefore the netlist adjacency matrix,
 scaled by the substrate's gain knobs (`attractScale`, `clusterAttract`,
@@ -40,13 +41,27 @@ boards couple each component to only a handful of others.
 ```
 component pins ─┐
 shared nets    ─┼─▶  signed coupling K  (CSR: row_ptr, col_idx, kvals)
-rules          ─┘        K_ij > 0  synchronize → place near
+topology       ─┘        K_ij > 0  synchronize → place near
                          K_ij < 0  anti-phase  → keep apart
 
 archetype  ┐
 hotspots   ┼─▶  conditioning block  ─▶  per-node drive[b,i]  (steers, no edges)
-feedback   ┘
+           ┘
 ```
+
+---
+
+## Deterministic vs learned optimizers (decision)
+
+| Channel | Role |
+| --- | --- |
+| **Deterministic (`anneal`)** | Explicit human-guided **symbolic rules** (`--feedback` → `push_away` / `cluster_tight` / `anchor_edge`) constrain the search. |
+| **Learned (`oscillator`; future GNN/RL)** | Optimization driven by **learned representations** (substrate mutation today). Symbolic rule injection is intentionally not this optimizer's learning channel. |
+
+Passing `--feedback` with `optimizer=oscillator` does not block the run; it emits
+an explicit notice (CLI + `report.json.feedbackScopeNotice`) that symbolic rules
+apply to anneal only. Cross-board transfer under oscillator carries the
+**evolved substrate**, not a set of symbolic rules.
 
 ## 2. Un‑0 inspiration
 
@@ -127,10 +142,13 @@ the canonical objective without making the field worse.
 > board is carried to a brand-new board as a warm start and measured there. In
 > practice the evolved substrate is a ~24% better optimizer on the new board.
 
-> **Symbolic rule promotion** (hotspot-derived `push_away` / `cluster_tight` /
-> `anchor_edge` rules) uses the same *score* gate but is **not** EMI-gated in the
-> current implementation — only substrate mutations are checked against EMI
-> non-regression.
+> **Symbolic rule promotion** (hotspot-derived or `--feedback` `push_away` /
+> `cluster_tight` / `anchor_edge`) is the **anneal** optimizer's constraint
+> channel. It is score-gated when those rules are tried under anneal. It is
+> **not** the oscillator's learning channel and is **not** EMI-gated as part of
+> substrate evolution — substrate mutations alone use the EMI non-regression
+> gate when `--emi` is enabled. Do not read "same score gate" as "one unified
+> rule+substrate gate."
 
 ## 6. Separation of concerns: propose vs. validate
 

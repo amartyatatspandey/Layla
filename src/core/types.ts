@@ -145,7 +145,6 @@ export type RuleKind =
   | "place_near"
   | "push_away"
   | "keepout"
-  | "weight"
   | "route_critical";
 
 export interface Rule {
@@ -158,7 +157,6 @@ export interface Rule {
     clusterKinds?: string[];
   };
   params: Record<string, any>;
-  weightDeltas?: Record<string, number>; // adjustments to objective weights
   status: "candidate" | "promoted" | "rejected";
   origin: string;        // human feedback text or "auto:<hotspot kind>"
   createdIter: number;
@@ -166,7 +164,6 @@ export interface Rule {
 
 export interface Ruleset {
   rules: Rule[];
-  weights: Record<string, number>;  // objective term weights (tuned over time)
   version: number;
   // The coupled-oscillator optimizer substrate — the parameters the RSI loop
   // recursively improves. Typed as `any` here to avoid a cyclic import with
@@ -193,4 +190,9 @@ export interface ImproveResult {
   best: { layout: Layout; score: Score };
   history: IterationRecord[];
   ruleset: Ruleset;
+  /**
+   * Set when --feedback was passed under optimizer=oscillator: symbolic rules
+   * are anneal-only; this run's learning channel is substrate mutation.
+   */
+  feedbackScopeNotice?: string;
 }
