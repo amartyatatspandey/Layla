@@ -66,6 +66,8 @@ export function scoreLayout(design: Design, layout: Layout, weights = DEFAULT_WE
     }
   }
   const routeCompletion = demandNets ? satisfiedNets / demandNets : 1;
+  // routeCompletion is the canonical routing-coverage signal (also mirrored by
+  // RoutingReport.completionRatio from route.ts). Do not reweight here.
 
   // ---- courtyard overlaps + off-board ----
   let courtyardOverlaps = 0;

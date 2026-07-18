@@ -111,14 +111,15 @@ The pipeline runs in this order, all in TypeScript, all offline:
    (USB/connector→left, antenna/RF→right), and runs a light de-overlap
    legalization. The annealer (`core/place.ts`) is the selectable **baseline**
    (`--optimizer anneal`) and is also reused as the short legalization polish.
-6. **Grid A\* critical-net router** (`core/route.ts`) — routes the top-priority
-   non-ground nets over a coarse two-layer (F.Cu/B.Cu) occupancy grid with via
-   costs; everything else is intentionally left as ratsnest for the scorer to
-   penalize. A cell already carrying a *different* net's copper is a **hard
-   block**, not a soft penalty — two nets can never legally route through the
-   same cell (verified by an independent post-hoc cell-occupancy scan, not
-   just trusted from the router's own bookkeeping; see
-   [`LAYLA_AUDIT.md`](LAYLA_AUDIT.md) finding B for the shortcut this closed).
+6. **Grid A\* router with negotiated congestion** (`core/route.ts`) — routes
+   demand nets over a coarse two-layer (F.Cu/B.Cu) occupancy grid with via
+   costs. **Tiered coverage:** small (`buck_imu`, `motor_driver`, `rf_sensor`)
+   and medium (`robot_soc`) attempt **all** non-ground demand nets; stress
+   (`mainboard`) stays **critical/capped**. Failed routes may rip up at most
+   two lower-priority victim nets, apply congestion history costs, and retry
+   for at most three deterministic passes — foreign-net occupancy remains a
+   **hard block** (never a soft cost that could permit shorts). Unrouted nets
+   are reported honestly; do not assume universal completion on large boards.
 7. **Field-proxy scoring + hotspots** (`core/score.ts`) — computes the canonical
    objective and emits ranked **hotspots** (e.g. *"buck hot loop area 130mm²"*,
    *"SW within 2.4mm of sensitive IMU_SCL"*) with suggested actions.
@@ -280,6 +281,7 @@ npm run check-lvs          # all 5 bundled boards are lvs.clean, + a manufacture
 npm run check-drc          # zero shared grid cells (router hard-block) + zero clearance violations,
                             # including every *fixed* footprint template checked in isolation
 npm run check-inloop-drc   # broad-phase score signal + exact DRC promotion non-regression fixtures
+npm run check-routing-completeness  # tiered route targets + determinism + hard-block + rip-up ownership
 npm run check-rules-scope  # weights removed; anneal feedback vs oscillator notice
 npm run check-optimizer-backend  # OptimizerBackend + uniform gates (score → DRC → EMI)
 ```
@@ -443,12 +445,9 @@ synthesized `.kicad_sch` with a `layla.json` board config, ranging from a
 | `motor_driver` | BLDC motor driver board | STM32G0 + DRV8313 + buck + INA240 current sensor — keep high-current motor nets and the buck away from sense/logic. |
 | `rf_sensor` | BLE RF sensor board | nRF52840 + chip antenna + buck + BME280 — give the antenna a clear board-edge keepout away from the switcher. |
 | `robot_soc` | Robotics control SoC | STM32H7 + DRV8353 3-phase BLDC stage (6 FETs + shunts) + nRF52840 radio + 3-buck power tree + USB-C + CAN + a 4-chip sensor cluster — dozens of fine SPI/I2C/PWM nets and high-current motor phases must coexist without coupling. |
-| `mainboard` | Autonomy mainboard | AM62 SoC + RP2040 + ICE40 FPGA, dual LPDDR4, a six-rail power tree, FOUR 3-phase BLDC channels (24 FETs), an 8-chip sensor bus, two radios, Ethernet/CAN/RS485/USB — the stress-test board; still mostly unrouted at the default 8-iteration budget (critical-nets-first router, see [What it is/isn't](#what-it-is--isnt)). |
+| `mainboard` | Autonomy mainboard | AM62 SoC + RP2040 + ICE40 FPGA, dual LPDDR4, a six-rail power tree, FOUR 3-phase BLDC channels (24 FETs), an 8-chip sensor bus, two radios, Ethernet/CAN/RS485/USB — the **stress** routing tier (critical/capped + ≥5% default-budget completion; failed nets logged in `report.json.routing`). |
 
-`robot_soc` and `mainboard` are the two boards where the critical-nets-first
-router's coverage limits are most visible — worth running yourself
-(`node dist/cli.js synth examples/mainboard/mainboard.kicad_sch`) before
-trusting route-completion numbers on a board of that size.
+Small boards (`buck_imu`, `motor_driver`, `rf_sensor`) target **100%** demand-net completion under negotiated congestion. Medium (`robot_soc`) targets **≥98%** — the honest ceiling when placement scatters a low-priority net across protected copper (shortfalls are reason-tagged in `report.json.routing.unroutedFailures`, e.g. `blocked_by_protected_copper`). `mainboard` (stress) targets **≥5%** critical/capped completion with explicit unrouted-net reporting.
 
 ### Learning and transfer
 
@@ -505,7 +504,7 @@ measured question on this codebase, not a settled claim.
 | `osc.ts` | **Coupled-oscillator (Kuramoto) placement optimizer** — graph compile, batched phase integration, phase→coordinate decode, legalization; `defaultSubstrate` / `mutateSubstrate`. The RSI substrate. |
 | `emi.ts` | **Independent progressive damped-wave 2.5D voxel EMI validator** (`validateEmiProgressive`). |
 | `place.ts` | Anchored seeding + simulated-annealing placement (baseline + legalization polish). |
-| `route.ts` | Grid A\* critical-net router (two-layer); hard-blocks a cell already claimed by a different net. |
+| `route.ts` | Grid A\* router with tiered coverage + bounded negotiated-congestion rip-up; hard-blocks foreign-net cells. |
 | `score.ts` | Canonical objective + field-risk proxy + hotspot detection. |
 | `rules.ts` | Symbolic rule synthesis from hotspots/`--feedback` (anneal constraints); no weight deltas. |
 | `synth.ts` | Orchestrator: `designFromSchematic`, `synthOnce` via `OptimizerBackend`, and the `improve` ratchet (uniform gate-list evaluation). |
@@ -526,9 +525,9 @@ measured question on this codebase, not a settled claim.
   clickable example boards.
 - **`src/scripts/gen-examples.ts`** — generates the bundled schematics into `examples/`.
 - **`src/scripts/check-footprint-pads.ts`**, **`check-lvs.ts`**, **`check-drc.ts`**,
-  **`check-inloop-drc.ts`** — the gate tests behind `npm run check-footprints` /
-  `check-lvs` / `check-drc` / `check-inloop-drc` (see
-  [Verification](#verification-lvs--clearance-drc)).
+  **`check-inloop-drc.ts`**, **`check-routing-completeness.ts`** — gate tests behind
+  `npm run check-footprints` / `check-lvs` / `check-drc` / `check-inloop-drc` /
+  `check-routing-completeness` (see [Verification](#verification-lvs--clearance-drc)).
 - **`examples/`** — the five example boards + `index.json`.
 - **`docs/`** — design docs, including [`oscillator-architecture.md`](docs/oscillator-architecture.md)
   (the full propose-vs-validate / substrate-RSI walkthrough), and `docs/gallery/`
@@ -569,12 +568,14 @@ proves out against a measurable objective before keeping them.
   near-field coupling and checks refinement convergence — a useful, model-based
   *cross-check*, but still **not certified EMC** and not a substitute for a real
   field solver (e.g. openEMS) or lab testing.
-- **A full autorouter.** Routing is **critical-nets-first**: it routes the top
-  handful of high-priority nets and deliberately leaves the rest as ratsnest for
-  the scorer to penalize and the placer to minimize. On the two largest bundled
-  boards (`robot_soc`, `mainboard`) that means most nets stay unrouted at the
-  default iteration budget — check `report.json`'s `routeCompletion` yourself
-  rather than assuming it's high.
+- **A full autorouter.** Routing is **tiered**, not universal: small boards
+  attempt all demand nets at 100%; medium (`robot_soc`) targets ≥98% with
+  reason-tagged shortfalls when placement leaves a low-priority net blocked
+  by protected copper; stress (`mainboard`) stays critical/capped with a ≥5%
+  default-budget completion expectation. Bounded negotiated-congestion
+  rip-up (≤2 lower-priority victims, ≤3 passes) never soft-crosses foreign
+  copper. Check `report.json.routing` / `score.routeCompletion` rather than
+  assuming high coverage on large boards.
 - **A fab-rule DRC tool.** `core/drc.ts` checks copper-to-copper *clearance*
   only (pad/trace/via spacing against `board.clearance`) — no annular-ring
   check, no trace-width-vs-current-capacity check, no real fab rule deck.

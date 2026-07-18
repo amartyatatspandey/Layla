@@ -9,6 +9,7 @@ import {
   parseSchematic, RNG, Ruleset, BoardSpec, Design, ImproveResult, Optimizer,
   compileDesign, isUnresolvedFootprintError,
   improveWithLoadedRuleset,
+  summarizeRoutingFromLayout, tierCompletionTarget,
 } from "./core";
 
 function parseArgs(argv: string[]): { _: string[]; flags: Record<string, string | boolean> } {
@@ -141,6 +142,15 @@ function writeOutputs(outDir: string, name: string, design: Design, res: Improve
   if (!drc.clean) {
     console.log(C.red(`  DRC: ${drc.violations.length} clearance violation(s) below ${drc.requiredClearanceMm}mm (see ${name}.report.json.drc)`));
   }
+  const routing = summarizeRoutingFromLayout(design, res.best.layout);
+  const routingTarget = tierCompletionTarget(routing.tier);
+  if (routing.completionRatio + 1e-12 < routingTarget) {
+    console.log(C.yellow(
+      `  routing: ${(routing.completionRatio * 100).toFixed(0)}% completion ` +
+      `(tier=${routing.tier}, target ≥${(routingTarget * 100).toFixed(0)}%; ` +
+      `${routing.unroutedNets.length} unrouted — see ${name}.report.json.routing)`,
+    ));
+  }
   const report: Record<string, unknown> = {
     name, components: design.components.length, nets: design.nets.length,
     iterations: res.history.length,
@@ -149,6 +159,17 @@ function writeOutputs(outDir: string, name: string, design: Design, res: Improve
     initialScore: res.history[0]?.rawScore, finalScore: res.best.score.total,
     improvementPct: res.history[0] ? Math.round((1 - res.best.score.total / res.history[0].rawScore) * 100) : 0,
     score: res.best.score, history: res.history,
+    routing: {
+      tier: routing.tier,
+      targetCompletion: routingTarget,
+      completionRatio: routing.completionRatio,
+      demandNetCount: routing.demandNetCount,
+      routedNets: routing.routedNets,
+      unroutedNets: routing.unroutedNets,
+      unroutedFailures: routing.unroutedFailures,
+      // score.routeCompletion is the canonical in-loop signal; kept equal by construction.
+      scoreRouteCompletion: res.best.score.routeCompletion,
+    },
     emi: { model: emi.model, converged: emi.converged, convergenceDeltaPct: emi.convergenceDeltaPct, levels: emi.levels, sensitiveProbeMax: emi.sensitiveProbeMax, verdict: emi.verdict, riskByProbe: emi.riskByProbe },
     lvs,
     drc,

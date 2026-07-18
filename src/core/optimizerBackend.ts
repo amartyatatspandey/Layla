@@ -7,7 +7,7 @@
 
 import { anneal, seedPlacement } from "./place";
 import { oscillatorPlace } from "./osc";
-import { routeCritical } from "./route";
+import { routeLayout } from "./route";
 import { scoreLayout, DEFAULT_WEIGHTS } from "./score";
 import { checkClearance, DrcClearanceReport } from "./drc";
 import { RNG } from "./rng";
@@ -30,6 +30,8 @@ export interface PlaceRequest {
   polish?: number;
   annealIters?: number;
   startFrom?: Layout;
+  /** Loaded ruleset lacked topologyMode — retain flat on hierarchy-eligible boards. */
+  legacyTopologyAbsent?: boolean;
 }
 
 /**
@@ -81,6 +83,7 @@ export function createOscillatorBackend(): OptimizerBackend {
       const { layouts, vizes } = oscillatorPlace(req.design, req.ruleset, sub, {
         batch,
         seed: req.seed,
+        legacyTopologyAbsent: req.legacyTopologyAbsent,
       });
       // Race seeds: polish + route + canonical score to pick one layout.
       // This selection is internal to producing a single CandidateLayout;
@@ -97,7 +100,7 @@ export function createOscillatorBackend(): OptimizerBackend {
                 endTemp: 0.01,
               })
             : layout;
-        routeCritical(req.design, refined, new RNG(req.seed + i + 31));
+        routeLayout(req.design, refined, new RNG(req.seed + i + 31));
         const score = scoreLayout(req.design, refined, DEFAULT_WEIGHTS);
         if (score.total < bestScore) {
           bestScore = score.total;
@@ -131,8 +134,8 @@ export interface MaterializedCandidate {
 /**
  * Shared place→route→score path used by every explore/promotion attempt.
  * Anneal layouts still need routing; oscillator backend already routes during
- * seed selection — routeCritical is idempotent enough to re-run (clears and
- * re-routes critical nets).
+ * seed selection — routeLayout clears and rebuilds copper ownership, so a
+ * second call would replace copper (anneal only routes here).
  */
 export function materializeCandidate(
   backend: OptimizerBackend,
@@ -142,7 +145,7 @@ export function materializeCandidate(
   // Anneal has not routed yet. Oscillator already routed each seed during
   // place() with seed-tied RNGs — do not re-route here (would change copper).
   if (backend.kind === "anneal") {
-    routeCritical(req.design, candidate.layout, req.rng);
+    routeLayout(req.design, candidate.layout, req.rng);
   }
   const score = scoreLayout(req.design, candidate.layout, DEFAULT_WEIGHTS);
   const extras = backend.takeDisplayExtras?.();

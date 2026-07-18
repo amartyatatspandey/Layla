@@ -28,6 +28,7 @@ import * as fs from "fs";
 import * as path from "path";
 import {
   compileDesign, improve, checkClearance, debugFootprintTemplates,
+  multiPadCellKeys,
   Design, Layout, Component, DEFAULT_BOARD,
 } from "../core";
 
@@ -67,10 +68,14 @@ function cellsOf(a: { x: number; y: number }, b: { x: number; y: number }): [num
   return out;
 }
 
-function scanForSharedCells(layout: Layout): { cell: string; nets: string[] }[] {
+function scanForSharedCells(design: Design, layout: Layout): { cell: string; nets: string[] }[] {
+  const padShared = multiPadCellKeys(design, layout);
   const owner = new Map<string, Set<string>>(); // "layer:gx:gy" -> nets touching it
   const claim = (layer: string, gx: number, gy: number, net: string) => {
     const key = `${layer}:${gx}:${gy}`;
+    // Fine-pitch pads of different nets can share a 0.5mm cell; that is
+    // footprint geometry, not a router-introduced short.
+    if (padShared.has(key)) return;
     let s = owner.get(key);
     if (!s) { s = new Set(); owner.set(key, s); }
     s.add(net);
@@ -95,7 +100,7 @@ function partA(): void {
   for (const ex of index) {
     const design = loadDesign(ex.name, ex.schematic);
     const res = improve(design, { iterations: 4, optimizer: "oscillator" });
-    const shared = scanForSharedCells(res.best.layout);
+    const shared = scanForSharedCells(design, res.best.layout);
     assert(
       shared.length === 0,
       `${ex.name}: 0 grid cells claimed by more than one net (found ${shared.length}; routeCompletion=${(res.best.score.routeCompletion * 100).toFixed(0)}%)`,

@@ -1,36 +1,107 @@
-// Grid A* router for critical nets.
+// Grid A* router with tiered coverage and negotiated-congestion rip-up.
 //
-// Routes the highest-priority (non-ground) nets over a coarse two-layer
-// occupancy grid, mutating layout.routes / layout.vias in place. This is a
-// *critical-net* router: it deliberately routes only the top handful of nets
-// and leaves everything else as ratsnest for the scorer to penalize.
+// Foreign-net occupancy is always a hard A* block (never a soft cost that
+// could permit shorts). Negotiation works by ripping up at most two
+// lower-priority victim nets, applying congestion history costs, and
+// retrying for at most three deterministic passes.
+//
+// Tier policy (bundled boards):
+//   small  — buck_imu, motor_driver, rf_sensor: all demand nets, target 100%
+//   medium — robot_soc: all demand nets, target ≥98% (placement-locality ceiling)
+//   stress — mainboard: critical/capped (MAX_NETS) only, target ≥5%
 
 import { Pt, dist } from "./geometry";
 import { Design, Layout, Net, RouteSegment, Via } from "./types";
-import { courtyardWorld, netPads } from "./layoututil";
+import { courtyardWorld, netPads, padWorld } from "./layoututil";
 import { RNG } from "./rng";
 
 const CELL = 0.5; // grid cell size in mm
 const F_CU = 0;
 const B_CU = 1;
-const OBSTACLE_PENALTY = 8; // extra cost (mm-equivalent) to cross a component-courtyard cell (soft — unchanged)
-const VIA_COST = 4; // cost of a layer change (board via)
-const MAX_EXPANSIONS = 20000;
-const MAX_NETS = 14;
-const NO_OWNER = -1; // netOwner sentinel: cell not yet claimed by any routed net this pass
+const OBSTACLE_PENALTY = 8; // soft courtyard cost (mm-equivalent)
+const VIA_COST = 2; // prefer layer changes to escape pad congestion
+const MAX_EXPANSIONS = 100000;
+const MAX_NETS_CRITICAL = 14;
+const NO_OWNER = -1;
+const MAX_PASSES = 3;
+const MAX_VICTIMS = 2;
+/** Soft cost used only in blocker-diagnostic search (never during real routing). */
+const DIAGNOSTIC_FOREIGN_COST = 500;
+/** Per-rip-up / diagnostic congestion history increment. */
+const CONGESTION_HISTORY = 40;
 
 // LAYLA_AUDIT.md finding B: a cell already carrying a *different*
 // net's copper used to only cost OBSTACLE_PENALTY extra to cross, so two
 // different nets could legally route through/over the same cell (an
-// electrical short) if that was cheaper than detouring. netOwner below
-// tracks which net (by Net.code, a small positive integer — 0 is never a
-// valid code, see classify.ts) currently claims each cell; a different net
-// trying to enter an owned cell is now a hard block (the cell is simply
-// never added to the A* open set for that net), while the owning net can
-// still re-enter its own cells (legitimate for pad-to-pad fan-out within one
-// net's route). Component-courtyard obstacles are unchanged: still a soft
-// OBSTACLE_PENALTY, not a hard block — that's a separate, out-of-scope
-// question from this prompt (preventing inter-net shorts specifically).
+// electrical short). netOwner tracks which net (by Net.code) claims each
+// cell; a different net trying to enter an owned cell is a hard block.
+// Component-courtyard obstacles remain a soft OBSTACLE_PENALTY.
+
+// ---------------------------------------------------------------------------
+// Public routing types
+// ---------------------------------------------------------------------------
+export type RoutingTier = "small" | "medium" | "stress";
+
+export interface RouteOpts {
+  /** Override auto-detected tier from design.name / size. */
+  tier?: RoutingTier;
+  /**
+   * `all` — every demand net (small/medium default).
+   * `critical` — priority-capped (stress default / routeCritical wrapper).
+   */
+  mode?: "all" | "critical";
+  /** Cap when mode is critical (default 14). */
+  maxNets?: number;
+  /** Negotiated-congestion pass budget (default 3). */
+  maxPasses?: number;
+  /** Max lower-priority victims ripped per failed net (default 2). */
+  maxVictimsPerFailure?: number;
+  /** Enable rip-up + congestion history (default true). */
+  negotiatedCongestion?: boolean;
+}
+
+/**
+ * Why a demand net remains without copper after routing.
+ * Distinguishes expected placement-ceiling shortfalls from new regressions.
+ */
+export type UnroutedReason =
+  /** Path blocked only by copper ineligible to rip (higher priority, or same-pri earlier). */
+  | "blocked_by_protected_copper"
+  /** Eligible victims existed but pass budget / rip-up budget was exhausted. */
+  | "exceeded_pass_budget"
+  /** Stress/critical mode never selected this demand net. */
+  | "not_attempted"
+  /** Attempted; A* found no path and diagnose saw no foreign owners (geometry/budget). */
+  | "no_path"
+  /** Catch-all — must not be silently treated as an expected shortfall. */
+  | "unexplained";
+
+export interface UnroutedNetFailure {
+  net: string;
+  reason: UnroutedReason;
+  /** Foreign net names on the diagnostic path (if any), deterministic sort. */
+  blockerNets: string[];
+}
+
+export interface RoutingReport {
+  tier: RoutingTier;
+  mode: "all" | "critical";
+  attemptOrder: string[];
+  routedNets: string[];
+  unroutedNets: string[];
+  /** Parallel detail for every entry in unroutedNets (same order). */
+  unroutedFailures: UnroutedNetFailure[];
+  congestionEvents: number;
+  ripUps: number;
+  passes: number;
+  demandNetCount: number;
+  /** satisfied / demand — same definition as Score.routeCompletion. */
+  completionRatio: number;
+}
+
+export interface RouteResult {
+  report: RoutingReport;
+}
 
 // ---------------------------------------------------------------------------
 // Minimal binary heap keyed by f-score.
@@ -92,16 +163,34 @@ class MinHeap {
 // ---------------------------------------------------------------------------
 // Occupancy grid.
 // ---------------------------------------------------------------------------
-interface Grid {
+export interface RouteGrid {
   cols: number;
   rows: number;
-  // courtyardObstacle[layer] indexed by gy*cols+gx (1 = inside a component
-  // courtyard — soft penalty, unchanged from before this prompt).
   courtyardObstacle: [Uint8Array, Uint8Array];
-  // netOwner[layer] indexed by gy*cols+gx: NO_OWNER (free) or the Net.code
-  // that has already routed copper through this cell — hard block for any
-  // other net (see NO_OWNER comment above).
   netOwner: [Int32Array, Int32Array];
+  /** Soft congestion history — never overrides foreign-net hard blocks. */
+  congestion: [Float32Array, Float32Array];
+  /**
+   * Pad-access exception: cell index → net codes that have a pad in this cell.
+   * Those nets may enter the cell even if another net already claimed it
+   * (fine-pitch pads can share a 0.5mm cell). Nets without a pad here still
+   * see a hard block — this never lets arbitrary copper cross foreign nets.
+   */
+  padNets: [Map<number, Set<number>>, Map<number, Set<number>>];
+}
+type Grid = RouteGrid;
+
+function hasPadAccess(grid: Grid, layer: number, cellIdx: number, netCode: number): boolean {
+  const s = grid.padNets[layer].get(cellIdx);
+  return !!s && s.has(netCode);
+}
+
+/** Foreign copper hard-block, with pad-access exception for the routing net. */
+function foreignHardBlocked(grid: Grid, layer: number, cellIdx: number, netCode: number): boolean {
+  const owner = grid.netOwner[layer][cellIdx];
+  if (owner === NO_OWNER || owner === netCode) return false;
+  if (hasPadAccess(grid, layer, cellIdx, netCode)) return false;
+  return true;
 }
 
 function layerName(layer: number): "F.Cu" | "B.Cu" {
@@ -128,7 +217,6 @@ function widthForNet(design: Design, net: Net): number {
   return b.defaultTraceW;
 }
 
-// Nearest-neighbour tour over pad points (starting from index 0).
 function nnTour(pts: Pt[]): Pt[] {
   const n = pts.length;
   if (n <= 2) return pts.slice();
@@ -162,12 +250,22 @@ interface Cell {
   layer: number;
 }
 
-// A* between two grid cells. Returns the cell path (inclusive of both ends),
-// or null if no path is found within the expansion cap. `netCode` is the
-// Net.code of the net currently being routed — cells owned by a different
-// net are hard-blocked; cells owned by netCode itself (or unowned) remain
-// passable.
-function astar(grid: Grid, start: Cell, goal: Cell, netCode: number): Cell[] | null {
+type AstMode = "route" | "diagnose";
+
+/**
+ * A* between two grid cells.
+ * `route` mode: foreign-net cells are hard-blocked.
+ * `diagnose` mode: foreign-net cells cost DIAGNOSTIC_FOREIGN_COST (soft) so
+ * we can recover which lower-priority owners sit on a wanted path — used
+ * only for rip-up selection, never to emit copper.
+ */
+function astar(
+  grid: Grid,
+  start: Cell,
+  goal: Cell,
+  netCode: number,
+  mode: AstMode = "route",
+): Cell[] | null {
   const { cols, rows } = grid;
   const planeSize = cols * rows;
 
@@ -205,7 +303,6 @@ function astar(grid: Grid, start: Cell, goal: Cell, netCode: number): Cell[] | n
     const gx = rem - gy * cols;
     const baseG = gScore.get(cur) ?? Infinity;
 
-    // 4-neighbour moves on the same layer.
     const nbrs = [
       [gx + 1, gy],
       [gx - 1, gy],
@@ -218,9 +315,16 @@ function astar(grid: Grid, start: Cell, goal: Cell, netCode: number): Cell[] | n
       if (closed.has(nid)) continue;
       const nIdx = ny * cols + nx;
       const owner = grid.netOwner[layer][nIdx];
-      if (owner !== NO_OWNER && owner !== netCode) continue; // hard block: another net's copper
+      if (owner !== NO_OWNER && owner !== netCode) {
+        if (mode === "route" && foreignHardBlocked(grid, layer, nIdx, netCode)) continue;
+      }
+      const foreign =
+        owner !== NO_OWNER && owner !== netCode && !hasPadAccess(grid, layer, nIdx, netCode)
+          ? DIAGNOSTIC_FOREIGN_COST
+          : 0;
       const penalty = grid.courtyardObstacle[layer][nIdx] ? OBSTACLE_PENALTY : 0;
-      const tentative = baseG + CELL + penalty;
+      const cong = grid.congestion[layer][nIdx];
+      const tentative = baseG + CELL + penalty + cong + foreign;
       if (tentative < (gScore.get(nid) ?? Infinity)) {
         gScore.set(nid, tentative);
         cameFrom.set(nid, cur);
@@ -228,15 +332,23 @@ function astar(grid: Grid, start: Cell, goal: Cell, netCode: number): Cell[] | n
       }
     }
 
-    // Via move: switch to the other layer at the same (gx, gy). A via barrel
-    // spans both layers at this (gx, gy), so it's blocked the same way if
-    // the *other* layer's cell is already claimed by a different net.
     const other = layer === F_CU ? B_CU : F_CU;
     const vid = stateId(gx, gy, other);
     const cellIdx = gy * cols + gx;
     const otherOwner = grid.netOwner[other][cellIdx];
-    if (!closed.has(vid) && (otherOwner === NO_OWNER || otherOwner === netCode)) {
-      const tentative = baseG + VIA_COST;
+    const viaBlocked =
+      otherOwner !== NO_OWNER &&
+      otherOwner !== netCode &&
+      mode === "route" &&
+      foreignHardBlocked(grid, other, cellIdx, netCode);
+    if (!closed.has(vid) && !viaBlocked) {
+      const foreign =
+        otherOwner !== NO_OWNER &&
+        otherOwner !== netCode &&
+        !hasPadAccess(grid, other, cellIdx, netCode)
+          ? DIAGNOSTIC_FOREIGN_COST
+          : 0;
+      const tentative = baseG + VIA_COST + grid.congestion[other][cellIdx] + foreign;
       if (tentative < (gScore.get(vid) ?? Infinity)) {
         gScore.set(vid, tentative);
         cameFrom.set(vid, cur);
@@ -267,7 +379,6 @@ function reconstruct(
   return path;
 }
 
-// Convert a same-layer run of cells into a simplified world polyline.
 function runPolyline(run: Cell[]): Pt[] {
   const pts = run.map((c) => ({ x: cellWorld(c.gx), y: cellWorld(c.gy) }));
   if (pts.length <= 2) return pts;
@@ -276,7 +387,6 @@ function runPolyline(run: Cell[]): Pt[] {
     const a = out[out.length - 1];
     const b = pts[i];
     const c = pts[i + 1];
-    // Drop b if a-b-c are collinear (cross product ~ 0).
     const cross = (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
     if (Math.abs(cross) > 1e-9) out.push(b);
   }
@@ -284,11 +394,6 @@ function runPolyline(run: Cell[]): Pt[] {
   return out;
 }
 
-// Rasterize a world-space segment onto the grid at CELL resolution and claim
-// every cell it passes through for netCode. Used to mark ownership from
-// actual emitted geometry (including pad-snapped, analog endpoints) rather
-// than from abstract grid-aligned path coordinates — see the comment in
-// emitPath() for why those two are not interchangeable.
 function markSegmentCells(grid: Grid, layer: number, a: Pt, b: Pt, netCode: number): void {
   const len = Math.hypot(b.x - a.x, b.y - a.y);
   const steps = Math.max(1, Math.ceil(len / CELL));
@@ -303,8 +408,6 @@ function markPolylineCells(grid: Grid, layer: number, poly: Pt[], netCode: numbe
   for (let i = 0; i + 1 < poly.length; i++) markSegmentCells(grid, layer, poly[i], poly[i + 1], netCode);
   if (poly.length === 1) markSegmentCells(grid, layer, poly[0], poly[0], netCode);
 }
-// True if any cell the segment a->b rasterizes to is already owned by a net
-// other than netCode.
 function segmentBlockedByOtherNet(grid: Grid, layer: number, a: Pt, b: Pt, netCode: number): boolean {
   const len = Math.hypot(b.x - a.x, b.y - a.y);
   const steps = Math.max(1, Math.ceil(len / CELL));
@@ -312,22 +415,18 @@ function segmentBlockedByOtherNet(grid: Grid, layer: number, a: Pt, b: Pt, netCo
     const t = i / steps;
     const gx = clamp(Math.round((a.x + (b.x - a.x) * t) / CELL), 0, grid.cols - 1);
     const gy = clamp(Math.round((a.y + (b.y - a.y) * t) / CELL), 0, grid.rows - 1);
-    const owner = grid.netOwner[layer][gy * grid.cols + gx];
-    if (owner !== NO_OWNER && owner !== netCode) return true;
+    const idx = gy * grid.cols + gx;
+    if (foreignHardBlocked(grid, layer, idx, netCode)) return true;
   }
   return false;
 }
 
-// Emit RouteSegments + Vias for a found cell path, snapping the global
-// endpoints to the exact pad positions. Also records used cells on the grid.
-// Returns false (emitting nothing) if the actual geometry — after the
-// pad-snap — would cross a cell owned by a different net: A*'s hard-block
-// only validated the abstract grid-aligned path; snapping the first/last
-// polyline point to the exact (analog) pad position can shift the rendered
-// segment into a cell A* never checked, since that shift happens after
-// pathfinding. Validating the real geometry here, before committing
-// anything, is what makes "no two nets share a cell" hold for what's
-// actually written rather than just for the path search.
+function bumpCongestionAlongPath(grid: Grid, path: Cell[]): void {
+  for (const c of path) {
+    grid.congestion[c.layer][c.gy * grid.cols + c.gx] += CONGESTION_HISTORY;
+  }
+}
+
 function emitPath(
   grid: Grid,
   path: Cell[],
@@ -339,7 +438,6 @@ function emitPath(
   routes: RouteSegment[],
   vias: Via[],
 ): boolean {
-  // Split into per-layer runs (a via sits between two runs).
   const runs: Cell[][] = [];
   let cur: Cell[] = [path[0]];
   for (let i = 1; i < path.length; i++) {
@@ -352,15 +450,11 @@ function emitPath(
   }
   runs.push(cur);
 
-  // Build per-run polylines, then snap global first/last endpoints to the
-  // exact pad positions (analog, not grid-quantized).
   const polylines = runs.map(runPolyline);
   if (polylines[0].length > 0) polylines[0][0] = { x: startPad.x, y: startPad.y };
   const lastPoly = polylines[polylines.length - 1];
   if (lastPoly.length > 0) lastPoly[lastPoly.length - 1] = { x: goalPad.x, y: goalPad.y };
 
-  // Validate every segment of the actual (post-snap) geometry against
-  // other-net ownership before touching `routes`/`vias`/`grid` at all.
   for (let r = 0; r < runs.length; r++) {
     const layer = runs[r][0].layer;
     const poly = polylines[r];
@@ -369,13 +463,9 @@ function emitPath(
     }
   }
 
-  // Claim cells for this net from the actual emitted geometry (not the
-  // abstract A* path cells — see the function comment above).
   for (let r = 0; r < runs.length; r++) {
     markPolylineCells(grid, runs[r][0].layer, polylines[r], netCode);
   }
-  // A via barrel spans both layers at each junction cell, so claim the other
-  // layer there too (consistent with the hard-block check on via moves).
   for (let r = 0; r + 1 < runs.length; r++) {
     const j = runs[r + 1][0];
     grid.netOwner[j.layer === F_CU ? B_CU : F_CU][j.gy * grid.cols + j.gx] = netCode;
@@ -390,7 +480,6 @@ function emitPath(
       if (a.x === b.x && a.y === b.y) continue;
       routes.push({ net: netName, layer, width, a, b });
     }
-    // A via lives at the junction between run r and run r+1.
     if (r + 1 < runs.length) {
       const junction = runs[r + 1][0];
       vias.push({ at: { x: cellWorld(junction.gx), y: cellWorld(junction.gy) }, net: netName });
@@ -399,18 +488,327 @@ function emitPath(
   return true;
 }
 
-export function routeCritical(design: Design, layout: Layout, _rng: RNG): void {
-  const board = design.board;
-  const cols = Math.max(1, Math.ceil(board.width / CELL));
-  const rows = Math.max(1, Math.ceil(board.height / CELL));
-  const grid: Grid = {
-    cols,
-    rows,
-    courtyardObstacle: [new Uint8Array(cols * rows), new Uint8Array(cols * rows)],
-    netOwner: [new Int32Array(cols * rows).fill(NO_OWNER), new Int32Array(cols * rows).fill(NO_OWNER)],
-  };
+// ---------------------------------------------------------------------------
+// Tier / candidate selection
+// ---------------------------------------------------------------------------
 
-  // 1. Mark component courtyards as penalized cells on both layers.
+const SMALL_BOARDS = new Set(["buck_imu", "motor_driver", "rf_sensor"]);
+const MEDIUM_BOARDS = new Set(["robot_soc"]);
+const STRESS_BOARDS = new Set(["mainboard"]);
+
+/** Resolve routing tier from opts or bundled-board / size heuristics. */
+export function resolveRoutingTier(design: Design, opts?: RouteOpts): RoutingTier {
+  if (opts?.tier) return opts.tier;
+  const name = design.name;
+  if (STRESS_BOARDS.has(name)) return "stress";
+  if (MEDIUM_BOARDS.has(name)) return "medium";
+  if (SMALL_BOARDS.has(name)) return "small";
+  // Unknown boards: size heuristic (component count).
+  if (design.components.length >= 100) return "stress";
+  if (design.components.length >= 40) return "medium";
+  return "small";
+}
+
+/**
+ * Tier completion floors (honest ceilings under current placement + locked
+ * rip-up rules). Medium is ≥98% (61/62 on robot_soc) — not 100% — because
+ * low-priority long-span nets can be placement-unroutable without ripping
+ * protected-tier copper. See technical_debt.md placement-locality entry.
+ */
+export function tierCompletionTarget(tier: RoutingTier): number {
+  if (tier === "stress") return 0.05;
+  if (tier === "medium") return 0.98;
+  return 1.0; // small
+}
+
+interface DemandNet {
+  net: Net;
+  pads: Pt[];
+}
+
+function demandNets(design: Design, layout: Layout): DemandNet[] {
+  return design.nets
+    .filter((n) => !n.classes.includes("ground"))
+    .map((n) => ({ net: n, pads: netPads(design, layout, n) }))
+    .filter((c) => c.pads.length >= 2)
+    .sort((a, b) => {
+      if (b.net.priority !== a.net.priority) return b.net.priority - a.net.priority;
+      // Within a priority band, shorter spans first (less congestion).
+      const spanA = netSpan(a.pads);
+      const spanB = netSpan(b.pads);
+      if (spanA !== spanB) return spanA - spanB;
+      return a.net.code - b.net.code;
+    });
+}
+
+function netSpan(pads: Pt[]): number {
+  let minx = Infinity, maxx = -Infinity, miny = Infinity, maxy = -Infinity;
+  for (const p of pads) {
+    if (p.x < minx) minx = p.x;
+    if (p.x > maxx) maxx = p.x;
+    if (p.y < miny) miny = p.y;
+    if (p.y > maxy) maxy = p.y;
+  }
+  return (maxx - minx) + (maxy - miny);
+}
+
+function selectCandidates(
+  all: DemandNet[],
+  mode: "all" | "critical",
+  maxNets: number,
+): DemandNet[] {
+  if (mode === "critical") return all.slice(0, maxNets);
+  return all;
+}
+
+// ---------------------------------------------------------------------------
+// Ownership release (rip-up) — only the owning net's cells / geometry
+// ---------------------------------------------------------------------------
+
+function releaseNetOwnership(grid: Grid, netCode: number): number {
+  let cleared = 0;
+  const n = grid.cols * grid.rows;
+  for (const layer of [F_CU, B_CU] as const) {
+    const plane = grid.netOwner[layer];
+    for (let i = 0; i < n; i++) {
+      if (plane[i] === netCode) {
+        plane[i] = NO_OWNER;
+        cleared++;
+      }
+    }
+  }
+  return cleared;
+}
+
+function removeNetGeometry(layout: Layout, netName: string): void {
+  layout.routes = layout.routes.filter((r) => r.net !== netName);
+  layout.vias = layout.vias.filter((v) => v.net !== netName);
+}
+
+/** Rip up one net: drop its copper and release only its netOwner cells. */
+export function ripUpNet(grid: Grid, layout: Layout, net: Net): number {
+  removeNetGeometry(layout, net.name);
+  const cleared = releaseNetOwnership(grid, net.code);
+  // Restore exclusive pad pre-claims so other nets cannot plow through pins.
+  for (const layer of [F_CU, B_CU] as const) {
+    for (const [idx, nets] of grid.padNets[layer]) {
+      if (nets.size === 1 && nets.has(net.code)) {
+        grid.netOwner[layer][idx] = net.code;
+      }
+    }
+  }
+  return cleared;
+}
+
+// ---------------------------------------------------------------------------
+// Per-net routing + blocker diagnosis
+// ---------------------------------------------------------------------------
+
+function tryRouteLeg(
+  grid: Grid,
+  design: Design,
+  layout: Layout,
+  net: Net,
+  a: Pt,
+  b: Pt,
+  preferLayer: number = F_CU,
+): boolean {
+  const cols = grid.cols;
+  const rows = grid.rows;
+  const width = widthForNet(design, net);
+  const start: Cell = { gx: toGX(a.x, cols), gy: toGY(a.y, rows), layer: preferLayer };
+  const goal: Cell = { gx: toGX(b.x, cols), gy: toGY(b.y, rows), layer: preferLayer };
+
+  if (start.gx === goal.gx && start.gy === goal.gy) {
+    if (a.x !== b.x || a.y !== b.y) {
+      if (segmentBlockedByOtherNet(grid, preferLayer, a, b, net.code)) return false;
+      layout.routes.push({
+        net: net.name,
+        layer: layerName(preferLayer),
+        width,
+        a: { x: a.x, y: a.y },
+        b: { x: b.x, y: b.y },
+      });
+      markSegmentCells(grid, preferLayer, a, b, net.code);
+    }
+    return true;
+  }
+
+  const sIdx = start.gy * cols + start.gx;
+  const gIdx = goal.gy * cols + goal.gx;
+  // Pad-access exception: start/goal may sit in a fine-pitch cell already
+  // claimed by another net that shares the cell with our pad.
+  if (foreignHardBlocked(grid, preferLayer, sIdx, net.code) || foreignHardBlocked(grid, preferLayer, gIdx, net.code)) {
+    return false;
+  }
+
+  const sF = grid.courtyardObstacle[preferLayer][sIdx];
+  const gF = grid.courtyardObstacle[preferLayer][gIdx];
+  grid.courtyardObstacle[preferLayer][sIdx] = 0;
+  grid.courtyardObstacle[preferLayer][gIdx] = 0;
+
+  const path = astar(grid, start, goal, net.code, "route");
+
+  grid.courtyardObstacle[preferLayer][sIdx] = sF;
+  grid.courtyardObstacle[preferLayer][gIdx] = gF;
+
+  if (!path) return false;
+  return emitPath(grid, path, net.name, net.code, width, a, b, layout.routes, layout.vias);
+}
+
+/**
+ * Route a net's NN-tour legs. Keeps successful legs (same as historical
+ * critical router) so multi-pin nets can partially satisfy score.routeCompletion.
+ * Returns whether every leg succeeded (used for negotiated retry).
+ */
+function tryRouteNet(grid: Grid, design: Design, layout: Layout, net: Net, pads: Pt[]): boolean {
+  ripUpNet(grid, layout, net);
+  const tour = nnTour(pads);
+  let complete = true;
+  for (let i = 0; i + 1 < tour.length; i++) {
+    const a = tour[i];
+    const b = tour[i + 1];
+    let ok = tryRouteLeg(grid, design, layout, net, a, b, F_CU);
+    if (!ok) ok = tryRouteLeg(grid, design, layout, net, a, b, B_CU);
+    if (!ok) complete = false;
+  }
+  return complete;
+}
+
+/**
+ * Diagnostic path that soft-costs foreign copper to identify blocker owners
+ * on a path the failing net "wants". Real routing never uses this mode.
+ * Returns only *eligible* rip-up victims (lower priority / equal-later).
+ */
+function diagnoseBlockers(
+  grid: Grid,
+  net: Net,
+  pads: Pt[],
+  codeToNet: Map<number, Net>,
+): Net[] {
+  return eligibleVictimsFromOwners(net, diagnoseAllForeignOwners(grid, net, pads, codeToNet), codeToNet);
+}
+
+/** All foreign net owners on a soft diagnostic path (no eligibility filter). */
+function diagnoseAllForeignOwners(
+  grid: Grid,
+  net: Net,
+  pads: Pt[],
+  codeToNet: Map<number, Net>,
+): Net[] {
+  const cols = grid.cols;
+  const rows = grid.rows;
+  const owners = new Set<number>();
+  const tour = nnTour(pads);
+
+  for (let i = 0; i + 1 < tour.length; i++) {
+    const a = tour[i];
+    const b = tour[i + 1];
+    const start: Cell = { gx: toGX(a.x, cols), gy: toGY(a.y, rows), layer: F_CU };
+    const goal: Cell = { gx: toGX(b.x, cols), gy: toGY(b.y, rows), layer: F_CU };
+
+    for (const cell of [start, goal]) {
+      const idx = cell.gy * cols + cell.gx;
+      const owner = grid.netOwner[F_CU][idx];
+      if (owner !== NO_OWNER && owner !== net.code && !hasPadAccess(grid, F_CU, idx, net.code)) {
+        owners.add(owner);
+      }
+    }
+
+    if (start.gx === goal.gx && start.gy === goal.gy) continue;
+
+    const sIdx = start.gy * cols + start.gx;
+    const gIdx = goal.gy * cols + goal.gx;
+    const sF = grid.courtyardObstacle[F_CU][sIdx];
+    const gF = grid.courtyardObstacle[F_CU][gIdx];
+    grid.courtyardObstacle[F_CU][sIdx] = 0;
+    grid.courtyardObstacle[F_CU][gIdx] = 0;
+    const path = astar(grid, start, goal, net.code, "diagnose");
+    grid.courtyardObstacle[F_CU][sIdx] = sF;
+    grid.courtyardObstacle[F_CU][gIdx] = gF;
+
+    if (!path) continue;
+    for (const c of path) {
+      const owner = grid.netOwner[c.layer][c.gy * cols + c.gx];
+      if (owner !== NO_OWNER && owner !== net.code) owners.add(owner);
+    }
+  }
+
+  const nets: Net[] = [];
+  for (const code of owners) {
+    const other = codeToNet.get(code);
+    if (other) nets.push(other);
+  }
+  nets.sort((a, b) => {
+    if (b.priority !== a.priority) return b.priority - a.priority;
+    return a.code - b.code;
+  });
+  return nets;
+}
+
+function eligibleVictimsFromOwners(
+  net: Net,
+  foreign: Net[],
+  _codeToNet: Map<number, Net>,
+): Net[] {
+  // Eligible victims: lower priority than the failing net, or equal priority
+  // with a higher code (later in the deterministic attempt order). Higher-
+  // priority blockers stay. Sort: priority ascending, then code ascending.
+  const victims: Net[] = [];
+  for (const other of foreign) {
+    const lowerPri = other.priority < net.priority;
+    const equalLater = other.priority === net.priority && other.code > net.code;
+    if (!lowerPri && !equalLater) continue;
+    victims.push(other);
+  }
+  victims.sort((a, b) => {
+    if (a.priority !== b.priority) return a.priority - b.priority;
+    return a.code - b.code;
+  });
+  return victims;
+}
+
+function classifyUnroutedFailure(
+  foreign: Net[],
+  eligible: Net[],
+  opts: { negotiated: boolean; lastPass: boolean; notAttempted: boolean },
+): UnroutedReason {
+  if (opts.notAttempted) return "not_attempted";
+  if (foreign.length > 0 && eligible.length === 0) return "blocked_by_protected_copper";
+  if (opts.negotiated && opts.lastPass && eligible.length > 0) return "exceeded_pass_budget";
+  if (foreign.length === 0) return "no_path";
+  return "unexplained";
+}
+
+/** Bump congestion along a soft-cost diagnostic path (history cost for later passes). */
+function bumpDiagnosticCongestion(grid: Grid, net: Net, pads: Pt[]): void {
+  const cols = grid.cols;
+  const rows = grid.rows;
+  const tour = nnTour(pads);
+  for (let i = 0; i + 1 < tour.length; i++) {
+    const a = tour[i];
+    const b = tour[i + 1];
+    const start: Cell = { gx: toGX(a.x, cols), gy: toGY(a.y, rows), layer: F_CU };
+    const goal: Cell = { gx: toGX(b.x, cols), gy: toGY(b.y, rows), layer: F_CU };
+    if (start.gx === goal.gx && start.gy === goal.gy) {
+      grid.congestion[F_CU][start.gy * cols + start.gx] += CONGESTION_HISTORY;
+      continue;
+    }
+    const sIdx = start.gy * cols + start.gx;
+    const gIdx = goal.gy * cols + goal.gx;
+    const sF = grid.courtyardObstacle[F_CU][sIdx];
+    const gF = grid.courtyardObstacle[F_CU][gIdx];
+    grid.courtyardObstacle[F_CU][sIdx] = 0;
+    grid.courtyardObstacle[F_CU][gIdx] = 0;
+    const path = astar(grid, start, goal, net.code, "diagnose");
+    grid.courtyardObstacle[F_CU][sIdx] = sF;
+    grid.courtyardObstacle[F_CU][gIdx] = gF;
+    if (path) bumpCongestionAlongPath(grid, path);
+  }
+}
+
+function buildCourtyards(design: Design, layout: Layout, grid: Grid): void {
+  const { cols, rows } = grid;
   for (const ref of Object.keys(layout.placements)) {
     const pl = layout.placements[ref];
     const box = courtyardWorld(design, pl);
@@ -426,84 +824,341 @@ export function routeCritical(design: Design, layout: Layout, _rng: RNG): void {
       }
     }
   }
+}
 
-  // 2. Select critical nets: skip ground, require >=2 pads, sort by priority.
-  const candidates = design.nets
-    .filter((n) => !n.classes.includes("ground"))
-    .map((n) => ({ net: n, pads: netPads(design, layout, n) }))
-    .filter((c) => c.pads.length >= 2)
-    .sort((a, b) => b.net.priority - a.net.priority)
-    .slice(0, MAX_NETS);
+function emptyGrid(cols: number, rows: number): Grid {
+  const n = cols * rows;
+  return {
+    cols,
+    rows,
+    courtyardObstacle: [new Uint8Array(n), new Uint8Array(n)],
+    netOwner: [new Int32Array(n).fill(NO_OWNER), new Int32Array(n).fill(NO_OWNER)],
+    congestion: [new Float32Array(n), new Float32Array(n)],
+    padNets: [new Map(), new Map()],
+  };
+}
 
-  // 3-6. Route each selected net as a nearest-neighbour chain.
-  for (const { net, pads } of candidates) {
-    const width = widthForNet(design, net);
-    const tour = nnTour(pads);
+function registerPadAccess(design: Design, layout: Layout, grid: Grid): void {
+  const { cols, rows } = grid;
+  // Record pad access + exclusive pre-claim on the component's copper layer
+  // only. The opposite layer stays free so routes can pass under pads via a
+  // layer change — pre-claiming both layers was sealing the board.
+  for (const net of design.nets) {
+    for (const pr of net.pins) {
+      const pl = layout.placements[pr.ref];
+      if (!pl) continue;
+      const w = padWorld(design, layout, pr.ref, pr.pad);
+      if (!w) continue;
+      const layer = pl.side === "back" ? B_CU : F_CU;
+      const gx = toGX(w.x, cols);
+      const gy = toGY(w.y, rows);
+      const idx = gy * cols + gx;
+      let s = grid.padNets[layer].get(idx);
+      if (!s) {
+        s = new Set();
+        grid.padNets[layer].set(idx, s);
+      }
+      s.add(net.code);
+    }
+  }
+  for (const layer of [F_CU, B_CU] as const) {
+    for (const [idx, nets] of grid.padNets[layer]) {
+      if (nets.size === 1) {
+        grid.netOwner[layer][idx] = nets.values().next().value as number;
+      }
+    }
+  }
+}
 
-    for (let i = 0; i + 1 < tour.length; i++) {
-      const a = tour[i];
-      const b = tour[i + 1];
-      const start: Cell = { gx: toGX(a.x, cols), gy: toGY(a.y, rows), layer: F_CU };
-      const goal: Cell = { gx: toGX(b.x, cols), gy: toGY(b.y, rows), layer: F_CU };
+/**
+ * Primary router entry: clears route/via ownership, then routes demand nets
+ * under the resolved tier policy with optional negotiated congestion.
+ */
+export function routeLayout(
+  design: Design,
+  layout: Layout,
+  _rng: RNG,
+  opts: RouteOpts = {},
+): RouteResult {
+  // Explicit clear + rebuild — never append onto stale copper.
+  layout.routes = [];
+  layout.vias = [];
 
-      // Endpoints share a cell: emit a direct segment so the pads connect —
-      // but only if none of the cells that segment actually rasterizes to
-      // are already claimed by a *different* net (a hard-block here mirrors
-      // the astar check below; otherwise this shortcut path could still
-      // draw an overlapping segment straight through another net's copper
-      // without ever touching astar). Checked against the real a->b
-      // geometry, not just the shared nominal cell, for the same reason
-      // emitPath() marks ownership from rasterized polylines rather than
-      // abstract path cells — analog pad positions don't always round to
-      // the cell their nominal grid coordinate suggests.
-      if (start.gx === goal.gx && start.gy === goal.gy) {
-        if (a.x !== b.x || a.y !== b.y) {
-          if (segmentBlockedByOtherNet(grid, F_CU, a, b, net.code)) continue; // leave as ratsnest
-          layout.routes.push({
-            net: net.name,
-            layer: "F.Cu",
-            width,
-            a: { x: a.x, y: a.y },
-            b: { x: b.x, y: b.y },
-          });
-          markSegmentCells(grid, F_CU, a, b, net.code);
+  const board = design.board;
+  const cols = Math.max(1, Math.ceil(board.width / CELL));
+  const rows = Math.max(1, Math.ceil(board.height / CELL));
+  const grid = emptyGrid(cols, rows);
+  buildCourtyards(design, layout, grid);
+  registerPadAccess(design, layout, grid);
+
+  const tier = resolveRoutingTier(design, opts);
+  const mode: "all" | "critical" =
+    opts.mode ?? (tier === "stress" ? "critical" : "all");
+  const maxNets = opts.maxNets ?? MAX_NETS_CRITICAL;
+  const maxPasses = opts.maxPasses ?? MAX_PASSES;
+  const maxVictims = opts.maxVictimsPerFailure ?? MAX_VICTIMS;
+  const negotiated = opts.negotiatedCongestion ?? true;
+
+  const allDemand = demandNets(design, layout);
+  const candidates = selectCandidates(allDemand, mode, maxNets);
+  const attemptOrder = candidates.map((c) => c.net.name);
+  const codeToNet = new Map(design.nets.map((n) => [n.code, n]));
+  const byName = new Map(candidates.map((c) => [c.net.name, c]));
+
+  // Completeness is measured against *demand* nets (same as score.ts), not
+  // against the critical subset alone — stress tier reports honest ratios.
+  const demandNames = new Set(allDemand.map((c) => c.net.name));
+  const demandNetCount = allDemand.length;
+
+  const routed = new Set<string>();
+  let ripUps = 0;
+  let congestionEvents = 0;
+  let passesUsed = 0;
+  /** Last observed failure detail per attempted net (overwritten each fail). */
+  const failureDetail = new Map<string, UnroutedNetFailure>();
+
+  for (let pass = 0; pass < maxPasses; pass++) {
+    passesUsed = pass + 1;
+    const lastPass = pass >= maxPasses - 1;
+
+    // Each negotiated pass rebuilds copper from scratch while keeping
+    // congestion history, so higher-priority nets can vacate corridors that
+    // failed lower-priority nets need (PathFinder-style), without ever
+    // soft-crossing foreign copper.
+    if (pass > 0 && negotiated) {
+      layout.routes = [];
+      layout.vias = [];
+      for (const layer of [F_CU, B_CU] as const) {
+        grid.netOwner[layer].fill(NO_OWNER);
+        // Re-apply exclusive pad pre-claims after clearing copper.
+        for (const [idx, nets] of grid.padNets[layer]) {
+          if (nets.size === 1) {
+            grid.netOwner[layer][idx] = nets.values().next().value as number;
+          }
         }
+      }
+      routed.clear();
+    }
+
+    const nextFailed: string[] = [];
+
+    for (const name of attemptOrder) {
+      const cand = byName.get(name);
+      if (!cand) continue;
+
+      if (tryRouteNet(grid, design, layout, cand.net, cand.pads)) {
+        routed.add(name);
+        failureDetail.delete(name);
         continue;
       }
 
-      // A*'s start state is never run through the neighbor-expansion
-      // hard-block (only cells *entered while searching* are checked), so a
-      // net whose own pad quantizes into a cell a different net already
-      // claimed — common for adjacent pins on a fine-pitch package, where
-      // two different nets' pads can legitimately sit within one 0.5mm
-      // cell of each other — could start (or, symmetrically, finish)
-      // routing from inside that other net's territory undetected. Reject
-      // the leg outright in that case rather than let it through unchecked.
-      const sIdx = start.gy * cols + start.gx;
-      const gIdx = goal.gy * cols + goal.gx;
-      const startOwner = grid.netOwner[F_CU][sIdx];
-      const goalOwner = grid.netOwner[F_CU][gIdx];
-      if ((startOwner !== NO_OWNER && startOwner !== net.code) || (goalOwner !== NO_OWNER && goalOwner !== net.code)) {
-        continue; // leave as ratsnest
+      // Incomplete / failed — diagnose blockers and apply congestion history.
+      const foreign = diagnoseAllForeignOwners(grid, cand.net, cand.pads, codeToNet);
+      const blockers = eligibleVictimsFromOwners(cand.net, foreign, codeToNet);
+      bumpDiagnosticCongestion(grid, cand.net, cand.pads);
+
+      const recordFail = () => {
+        failureDetail.set(name, {
+          net: name,
+          reason: classifyUnroutedFailure(foreign, blockers, {
+            negotiated,
+            lastPass: lastPass || !negotiated,
+            notAttempted: false,
+          }),
+          blockerNets: foreign.map((n) => n.name),
+        });
+        if (layout.routes.some((r) => r.net === name)) routed.add(name);
+        else nextFailed.push(name);
+      };
+
+      if (!negotiated || lastPass) {
+        recordFail();
+        continue;
       }
 
-      // Allow the endpoint cells to be entered even if covered by courtyard.
-      const sF = grid.courtyardObstacle[F_CU][sIdx];
-      const gF = grid.courtyardObstacle[F_CU][gIdx];
-      grid.courtyardObstacle[F_CU][sIdx] = 0;
-      grid.courtyardObstacle[F_CU][gIdx] = 0;
+      const victims = blockers.slice(0, maxVictims);
+      if (victims.length === 0) {
+        congestionEvents++;
+        recordFail();
+        continue;
+      }
 
-      const path = astar(grid, start, goal, net.code);
+      congestionEvents++;
+      for (const v of victims) {
+        const ncells = cols * rows;
+        for (const layer of [F_CU, B_CU] as const) {
+          for (let i = 0; i < ncells; i++) {
+            if (grid.netOwner[layer][i] === v.code) {
+              grid.congestion[layer][i] += CONGESTION_HISTORY;
+            }
+          }
+        }
+        ripUpNet(grid, layout, v);
+        ripUps++;
+        routed.delete(v.name);
+      }
 
-      // Restore endpoint obstacle flags before emitting (emitPath re-marks).
-      grid.courtyardObstacle[F_CU][sIdx] = sF;
-      grid.courtyardObstacle[F_CU][gIdx] = gF;
+      if (tryRouteNet(grid, design, layout, cand.net, cand.pads)) {
+        routed.add(name);
+        failureDetail.delete(name);
+      } else {
+        // Re-diagnose after rip-up for accurate final reason tags.
+        const foreign2 = diagnoseAllForeignOwners(grid, cand.net, cand.pads, codeToNet);
+        const blockers2 = eligibleVictimsFromOwners(cand.net, foreign2, codeToNet);
+        failureDetail.set(name, {
+          net: name,
+          reason: classifyUnroutedFailure(foreign2, blockers2, {
+            negotiated,
+            lastPass: false,
+            notAttempted: false,
+          }),
+          blockerNets: foreign2.map((n) => n.name),
+        });
+        if (layout.routes.some((r) => r.net === name)) routed.add(name);
+        else nextFailed.push(name);
+      }
+    }
 
-      if (!path) continue; // leave as ratsnest
-      // emitPath() returns false (nothing committed) if the pad-snapped
-      // geometry collides with another net's already-claimed cells even
-      // though the abstract A* path was clear — also left as ratsnest.
-      emitPath(grid, path, net.name, net.code, width, a, b, layout.routes, layout.vias);
+    if (nextFailed.length === 0) break;
+  }
+
+  // Final routed set from actual geometry (honest — not just the Set).
+  const routedFromGeom = new Set(layout.routes.map((r) => r.net));
+  const routedNets = attemptOrder.filter((n) => routedFromGeom.has(n));
+  const unroutedAttempted = attemptOrder.filter((n) => !routedFromGeom.has(n));
+  const unroutedNotAttempted = [...demandNames].filter(
+    (n) => !attemptOrder.includes(n) && !routedFromGeom.has(n),
+  );
+  const unroutedNets = [...unroutedAttempted, ...unroutedNotAttempted];
+
+  const unroutedFailures: UnroutedNetFailure[] = unroutedNets.map((n) => {
+    if (unroutedNotAttempted.includes(n)) {
+      return { net: n, reason: "not_attempted" as const, blockerNets: [] };
+    }
+    const detail = failureDetail.get(n);
+    if (detail) return detail;
+    return { net: n, reason: "unexplained" as const, blockerNets: [] };
+  });
+
+  // Same definition as score.ts: demand nets with any copper / demand count.
+  let satisfied = 0;
+  for (const n of demandNames) if (routedFromGeom.has(n)) satisfied++;
+  const completionRatio = demandNetCount ? satisfied / demandNetCount : 1;
+
+  return {
+    report: {
+      tier,
+      mode,
+      attemptOrder,
+      routedNets,
+      unroutedNets,
+      unroutedFailures,
+      congestionEvents,
+      ripUps,
+      passes: passesUsed,
+      demandNetCount,
+      completionRatio,
+    },
+  };
+}
+
+/**
+ * Compatibility wrapper: critical/capped routing (stress-tier behaviour).
+ * Callers that need the old capped mode should use this; prefer routeLayout
+ * for tier-aware full-demand routing.
+ */
+export function routeCritical(
+  design: Design,
+  layout: Layout,
+  rng: RNG,
+  opts: RouteOpts = {},
+): RouteResult {
+  return routeLayout(design, layout, rng, { ...opts, mode: "critical" });
+}
+
+/** Expose grid cell size for independent occupancy scans in gate tests. */
+export const ROUTE_GRID_CELL_MM = CELL;
+export const ROUTE_NO_OWNER = NO_OWNER;
+
+/**
+ * Build a fresh ownership grid matching an existing layout's copper — used by
+ * gate tests to verify rip-up releases only the owning net's cells.
+ */
+export function ownershipGridFromLayout(design: Design, layout: Layout): Grid {
+  const cols = Math.max(1, Math.ceil(design.board.width / CELL));
+  const rows = Math.max(1, Math.ceil(design.board.height / CELL));
+  const grid = emptyGrid(cols, rows);
+  registerPadAccess(design, layout, grid);
+  const nameToCode = new Map(design.nets.map((n) => [n.name, n.code]));
+  for (const seg of layout.routes) {
+    const code = nameToCode.get(seg.net);
+    if (code === undefined) continue;
+    const layer = seg.layer === "B.Cu" ? B_CU : F_CU;
+    markSegmentCells(grid, layer, seg.a, seg.b, code);
+  }
+  for (const via of layout.vias) {
+    const code = nameToCode.get(via.net);
+    if (code === undefined) continue;
+    const gx = toGX(via.at.x, cols);
+    const gy = toGY(via.at.y, rows);
+    grid.netOwner[F_CU][gy * cols + gx] = code;
+    grid.netOwner[B_CU][gy * cols + gx] = code;
+  }
+  return grid;
+}
+
+/**
+ * Cells where two or more nets have pads (fine-pitch co-occupancy). Shared
+ * route copper in these cells is footprint-forced pad access, not a router short.
+ */
+export function multiPadCellKeys(design: Design, layout: Layout): Set<string> {
+  const cols = Math.max(1, Math.ceil(design.board.width / CELL));
+  const counts = new Map<string, Set<string>>();
+  for (const net of design.nets) {
+    for (const pr of net.pins) {
+      const pl = layout.placements[pr.ref];
+      if (!pl) continue;
+      const w = padWorld(design, layout, pr.ref, pr.pad);
+      if (!w) continue;
+      const layer = pl.side === "back" ? "B.Cu" : "F.Cu";
+      const gx = toGX(w.x, cols);
+      const gy = toGY(w.y, Math.max(1, Math.ceil(design.board.height / CELL)));
+      const key = `${layer}:${gx}:${gy}`;
+      let s = counts.get(key);
+      if (!s) { s = new Set(); counts.set(key, s); }
+      s.add(net.name);
     }
   }
+  const out = new Set<string>();
+  for (const [key, nets] of counts) if (nets.size > 1) out.add(key);
+  return out;
+}
+
+/**
+ * Post-hoc routing summary from an existing layout (does not mutate copper).
+ * completionRatio matches Score.routeCompletion (demand nets with any copper).
+ * Reason tags are unavailable without a live routeLayout pass — unrouted nets
+ * are tagged `unexplained` so callers know this is not a live diagnosis.
+ */
+export function summarizeRoutingFromLayout(design: Design, layout: Layout): {
+  tier: RoutingTier;
+  demandNetCount: number;
+  routedNets: string[];
+  unroutedNets: string[];
+  unroutedFailures: UnroutedNetFailure[];
+  completionRatio: number;
+} {
+  const tier = resolveRoutingTier(design);
+  const all = demandNets(design, layout);
+  const routedGeom = new Set(layout.routes.map((r) => r.net));
+  const routedNets = all.filter((c) => routedGeom.has(c.net.name)).map((c) => c.net.name);
+  const unroutedNets = all.filter((c) => !routedGeom.has(c.net.name)).map((c) => c.net.name);
+  const demandNetCount = all.length;
+  const completionRatio = demandNetCount ? routedNets.length / demandNetCount : 1;
+  const unroutedFailures: UnroutedNetFailure[] = unroutedNets.map((n) => ({
+    net: n,
+    reason: "unexplained",
+    blockerNets: [],
+  }));
+  return { tier, demandNetCount, routedNets, unroutedNets, unroutedFailures, completionRatio };
 }
