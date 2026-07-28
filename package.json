@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "layla — a recursively self-improving AI for PCB design: schematic in, placed & routed board out — getting better on every iteration.",
   "author": "Amartya Pandey",
-  "license": "MIT",
+  "license": "PolyForm-Noncommercial-1.0.0",
   "main": "dist/electron/main.js",
   "type": "commonjs",
   "bin": {

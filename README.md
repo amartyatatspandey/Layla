@@ -610,4 +610,5 @@ proves out against a measurable objective before keeping them.
 
 ## License
 
-MIT.
+Licensed under the [PolyForm Noncommercial License 1.0.0](LICENSE).
+Non-commercial use only (personal, research, education, and qualifying noncommercial organizations). Contact the copyright holder for commercial licensing.
